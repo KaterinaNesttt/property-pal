@@ -24,7 +24,7 @@ const StatCard = ({ icon: Icon, label, value, trend, trendUp }: StatCardProps) =
           )}
         </div>
         <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
-          <Icon className="w-5 h-5 text-primary" />
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
         </div>
       </div>
     </div>

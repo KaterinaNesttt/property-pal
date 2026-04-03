@@ -19,18 +19,18 @@ const PropertyCard = ({ name, address, type, status, tenant, rent }: PropertyCar
   const statusInfo = statusConfig[status];
 
   return (
-    <div className="glass-card p-5 animate-slide-up hover:scale-[1.01] transition-all duration-300 cursor-pointer">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-primary" />
+    <div className="glass-card p-4 sm:p-5 animate-slide-up hover:scale-[1.01] transition-all duration-300 cursor-pointer overflow-hidden">
+      <div className="flex items-start justify-between mb-3 gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           </div>
-          <div>
-            <h3 className="font-semibold text-foreground">{name}</h3>
+          <div className="min-w-0">
+            <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">{name}</h3>
             <p className="text-xs text-muted-foreground">{type}</p>
           </div>
         </div>
-        <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${statusInfo.className}`}>
+        <span className={`text-[10px] sm:text-[11px] font-semibold px-2 py-1 rounded-full flex-shrink-0 whitespace-nowrap ${statusInfo.className}`}>
           {statusInfo.label}
         </span>
       </div>

@@ -9,7 +9,7 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   return (
-    <div className="min-h-screen flex w-full">
+    <div className="min-h-screen flex w-full overflow-x-hidden">
       <AnimatedBackground />
       <DesktopSidebar />
       <main className="flex-1 flex flex-col min-h-screen">
