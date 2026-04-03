@@ -23,7 +23,7 @@ const StatCard = ({ icon: Icon, label, value, trend, trendUp }: StatCardProps) =
             </p>
           )}
         </div>
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
           <Icon className="w-5 h-5 text-primary" />
         </div>
       </div>
