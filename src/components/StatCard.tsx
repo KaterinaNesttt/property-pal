@@ -16,7 +16,7 @@ const StatCard = ({ icon: Icon, label, value, trend, trendUp }: StatCardProps) =
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground font-medium">{label}</p>
-          <p className="stat-value">{value}</p>
+          <p className="stat-value text-xl sm:text-2xl">{value}</p>
           {trend && (
             <p className={`text-xs font-medium ${trendUp ? "text-success" : "text-destructive"}`}>
               {trendUp ? "↑" : "↓"} {trend}
