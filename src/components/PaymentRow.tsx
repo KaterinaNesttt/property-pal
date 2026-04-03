@@ -33,21 +33,23 @@ const PaymentRow = ({ type, property, amount, date, status }: PaymentRowProps) =
   const statusInfo = statusConfig[status];
 
   return (
-    <div className="flex items-center gap-4 p-4 glass-card hover:scale-[1.01] transition-all duration-300 cursor-pointer">
-      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-5 h-5 text-primary" />
+    <div className="flex items-center gap-3 p-3 sm:p-4 glass-card hover:scale-[1.01] transition-all duration-300 cursor-pointer overflow-hidden">
+      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-foreground text-sm">{typeLabels[type]}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-medium text-foreground text-sm truncate">{typeLabels[type]}</p>
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap ${statusInfo.className}`}>
+            {statusInfo.label}
+          </span>
+        </div>
         <p className="text-xs text-muted-foreground truncate">{property}</p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-xs text-muted-foreground">{date}</p>
+          <p className="font-semibold text-foreground text-sm">{amount.toLocaleString()} ₴</p>
+        </div>
       </div>
-      <div className="text-right flex-shrink-0">
-        <p className="font-semibold text-foreground text-sm">{amount.toLocaleString()} ₴</p>
-        <p className="text-xs text-muted-foreground">{date}</p>
-      </div>
-      <span className={`text-[10px] font-semibold px-2 py-1 rounded-full flex-shrink-0 ${statusInfo.className}`}>
-        {statusInfo.label}
-      </span>
     </div>
   );
 };

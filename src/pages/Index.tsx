@@ -38,7 +38,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatCard icon={TrendingUp} label="Дохід за місяць" value="42 350 ₴" trend="+12% від березня" trendUp />
           <StatCard icon={CreditCard} label="Очікувані" value="14 340 ₴" />
           <StatCard icon={AlertTriangle} label="Прострочені" value="350 ₴" trend="1 платіж" trendUp={false} />
