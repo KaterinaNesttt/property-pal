@@ -12,7 +12,7 @@ interface StatCardProps {
 
 const StatCard = ({ icon: Icon, label, value, trend, trendUp }: StatCardProps) => {
   return (
-    <div className="glass-card p-5 animate-slide-up group hover:scale-[1.02] transition-transform duration-300">
+    <div className="glass-card p-3 sm:p-5 animate-slide-up group hover:scale-[1.02] transition-transform duration-300 overflow-hidden">
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground font-medium">{label}</p>
