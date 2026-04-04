@@ -6,7 +6,7 @@ const navGroups = [
   {
     label: "Меню",
     items: [
-      { to: "/", icon: Home, label: "Dashboard" },
+      { to: "/", icon: Home, label: "Головна" },
       { to: "/properties", icon: Building2, label: "Нерухомість" },
       { to: "/tenants", icon: Users, label: "Орендарі" },
       { to: "/payments", icon: CreditCard, label: "Платежі" },

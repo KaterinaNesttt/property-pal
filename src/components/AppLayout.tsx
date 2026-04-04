@@ -3,6 +3,7 @@ import MobileNav from "./MobileNav";
 import DesktopSidebar from "./DesktopSidebar";
 import AnimatedBackground from "./AnimatedBackground";
 
+
 interface AppLayoutProps {
   children: ReactNode;
 }
