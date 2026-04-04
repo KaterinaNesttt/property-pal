@@ -1,4 +1,12 @@
 import { ApiErrorPayload } from "@/lib/types";
+import {
+  cacheOfflineResponse,
+  enqueueOfflineMutation,
+  flushOfflineMutations,
+  getPendingOfflineMutationsCount,
+  getOfflineResponse,
+  isOfflineQueuedResult,
+} from "@/lib/offline-sync";
 
 const DEFAULT_API_BASE = "https://property-pal-api.roman-v-shkurenko.workers.dev";
 const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_API_BASE;
@@ -20,6 +28,24 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
   token?: string | null;
 }
 
+function isNetworkError(error: unknown) {
+  return error instanceof TypeError;
+}
+
+function shouldQueueRequest(path: string, options: RequestOptions) {
+  const method = (options.method ?? "GET").toUpperCase();
+  return (
+    (method === "POST" || method === "PUT" || method === "DELETE") &&
+    Boolean(options.token) &&
+    path.startsWith("/api/") &&
+    !path.startsWith("/api/auth/")
+  );
+}
+
+function isOfflineReadable(path: string, options: RequestOptions) {
+  return (options.method ?? "GET").toUpperCase() === "GET" && path.startsWith("/api/");
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
@@ -32,11 +58,33 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     headers.set("Authorization", `Bearer ${options.token}`);
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    });
+  } catch (error) {
+    if (isOfflineReadable(path, options)) {
+      const cached = getOfflineResponse(path);
+      if (cached !== undefined) {
+        return cached as T;
+      }
+    }
+
+    if (shouldQueueRequest(path, options) && isNetworkError(error)) {
+      return enqueueOfflineMutation({
+        method: (options.method ?? "GET").toUpperCase() as "POST" | "PUT" | "DELETE",
+        path,
+        body: options.body,
+        token: options.token as string,
+      }) as T;
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
     let payload: ApiErrorPayload | undefined;
@@ -57,7 +105,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     return undefined as T;
   }
 
-  return (await response.json()) as T;
+  const data = (await response.json()) as T;
+  if (isOfflineReadable(path, options)) {
+    cacheOfflineResponse(path, data);
+  }
+  return data;
 }
 
 export const api = {
@@ -67,4 +119,11 @@ export const api = {
   put: <T>(path: string, body: unknown, token?: string | null) =>
     request<T>(path, { method: "PUT", body, token }),
   delete: <T>(path: string, token?: string | null) => request<T>(path, { method: "DELETE", token }),
+};
+
+export const offlineSync = {
+  apiBase: API_BASE,
+  flush: () => flushOfflineMutations(API_BASE),
+  getPendingCount: getPendingOfflineMutationsCount,
+  isQueuedResult: isOfflineQueuedResult,
 };
