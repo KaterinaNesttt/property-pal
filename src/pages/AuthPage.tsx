@@ -37,17 +37,16 @@ const AuthPage = () => {
           <section className="glass-card p-8 md:p-10">
             <p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Property Pal</p>
             <h1 className="mt-4 max-w-xl text-4xl font-bold leading-tight text-white md:text-5xl">
-              Керування орендною нерухомістю без заглушок і ручних таблиць.
+              Вас вітає Jopka Corporation.
             </h1>
             <p className="mt-5 max-w-2xl text-base text-slate-300">
-              Після входу доступні модулі для об'єктів, орендарів, оплат, лічильників, задач, аналітики,
-              рахунків і локальних нагадувань.
+             Керуй. Посилай. Заробляй.
             </p>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               {[
-                "Рольова модель: superadmin / owner / tenant",
-                "CRUD для всіх основних сутностей",
-                "PWA з кешуванням і офлайн-читанням",
+                "Максимально можлива автоматизація",
+                "Не забувай контролювати своїх орендарів",
+                "Не ігноруй сповіщення",
               ].map((item) => (
                 <div key={item} className="rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-slate-300">
                   {item}
