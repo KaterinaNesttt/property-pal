@@ -34,26 +34,7 @@ const AuthPage = () => {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-10 md:px-8">
         <div className="grid w-full gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <section className="glass-card p-8 md:p-10">
-            <p className="text-xs uppercase tracking-[0.24em] text-btns">Property Pal</p>
-            <h1 className="mt-4 max-w-xl text-4xl font-bold leading-tight text-white md:text-5xl">
-              Вас вітає Jopka Corporation.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base text-slate-300">
-              Керуй. Поселяй. Заробляй.
-            </p>
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {[
-                "Максимально можлива автоматизація",
-                "Не забувай контролювати своїх орендарів",
-                "Не ігноруй сповіщення",
-              ].map((item) => (
-                <div key={item} className="rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-slate-300">
-                  {item}
-                </div>
-              ))}
-            </div>
-          </section>
+
 
           <section className="glass-card p-8">
             <div className="flex rounded-full border border-white/10 bg-black/20 p-1">
@@ -104,6 +85,27 @@ const AuthPage = () => {
                 {busy ? "Обробка..." : mode === "login" ? "Увійти" : "Створити власника"}
               </button>
             </form>
+          </section>
+
+                    <section className="glass-card p-8 md:p-10">
+            <p className="text-xs uppercase tracking-[0.24em] text-btns">Property Pal</p>
+            <h1 className="mt-4 max-w-xl text-4xl font-bold leading-tight text-white md:text-5xl">
+              Вас вітає Jopka Corporation.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base text-slate-300">
+              Керуй. Поселяй. Заробляй.
+            </p>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {[
+                "Максимально можлива автоматизація",
+                "Не забувай контролювати своїх орендарів",
+                "Не ігноруй сповіщення",
+              ].map((item) => (
+                <div key={item} className="rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-slate-300">
+                  {item}
+                </div>
+              ))}
+            </div>
           </section>
         </div>
       </div>

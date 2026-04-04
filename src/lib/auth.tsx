@@ -12,6 +12,23 @@ interface RegisterPayload extends Credentials {
   full_name: string;
 }
 
+interface BadgePreferences {
+  all: boolean;
+  properties: boolean;
+  tasks: boolean;
+  invoices: boolean;
+}
+
+export interface UserPreferences {
+  full_name: string;
+  phone: string;
+  avatar: string | null;
+  avatarScale: number;
+  avatarX: number;
+  avatarY: number;
+  badgePreferences: BadgePreferences;
+}
+
 interface AuthContextValue {
   ready: boolean;
   token: string | null;
@@ -19,10 +36,29 @@ interface AuthContextValue {
   login: (payload: Credentials) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
+  preferences: UserPreferences;
+  updatePreferences: (patch: Partial<UserPreferences>) => void;
+  updateBadgePreferences: (patch: Partial<BadgePreferences>) => void;
 }
 
 const STORAGE_KEY = "property-pal-auth";
+const PREFERENCES_KEY = "property-pal-user-preferences";
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+const defaultPreferences: UserPreferences = {
+  full_name: "",
+  phone: "",
+  avatar: null,
+  avatarScale: 1,
+  avatarX: 0,
+  avatarY: 0,
+  badgePreferences: {
+    all: true,
+    properties: true,
+    tasks: true,
+    invoices: true,
+  },
+};
 
 function readStoredToken() {
   if (typeof window === "undefined") {
@@ -32,10 +68,39 @@ function readStoredToken() {
   return window.localStorage.getItem(STORAGE_KEY);
 }
 
+function readPreferences() {
+  if (typeof window === "undefined") {
+    return defaultPreferences;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(PREFERENCES_KEY);
+    if (!raw) {
+      return defaultPreferences;
+    }
+    const parsed = JSON.parse(raw) as Partial<UserPreferences>;
+    return {
+      ...defaultPreferences,
+      ...parsed,
+      badgePreferences: {
+        ...defaultPreferences.badgePreferences,
+        ...(parsed.badgePreferences ?? {}),
+      },
+    };
+  } catch {
+    return defaultPreferences;
+  }
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(readStoredToken);
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
+  const [preferences, setPreferences] = useState<UserPreferences>(readPreferences);
+
+  useEffect(() => {
+    window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+  }, [preferences]);
 
   useEffect(() => {
     if (!token) {
@@ -83,16 +148,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     toast.error(fallback);
   };
 
+  const mergedUser = useMemo<User | null>(() => {
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      full_name: preferences.full_name.trim() || user.full_name,
+    };
+  }, [preferences.full_name, user]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       ready,
       token,
-      user,
+      user: mergedUser,
+      preferences,
+      updatePreferences(patch) {
+        setPreferences((current) => ({
+          ...current,
+          ...patch,
+          badgePreferences: patch.badgePreferences
+            ? { ...current.badgePreferences, ...patch.badgePreferences }
+            : current.badgePreferences,
+        }));
+      },
+      updateBadgePreferences(patch) {
+        setPreferences((current) => ({
+          ...current,
+          badgePreferences: {
+            ...current.badgePreferences,
+            ...patch,
+          },
+        }));
+      },
       async login(payload) {
         try {
           const response = await api.post<AuthResponse>("/api/auth/login", payload);
           persistSession(response);
-          toast.success("Вхід виконано");
         } catch (error) {
           handleAuthError(error, "Не вдалося увійти");
           throw error;
@@ -114,7 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
       },
     }),
-    [ready, token, user],
+    [mergedUser, preferences, ready, token],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

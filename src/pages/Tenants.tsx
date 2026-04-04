@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { addMonths } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -11,21 +12,21 @@ import { useAuth } from "@/lib/auth";
 import { formatDate, money } from "@/lib/format";
 import { Property, Tenant } from "@/lib/types";
 
+const today = new Date().toISOString().slice(0, 10);
+
 const initialForm = {
   id: "",
   property_id: "",
   full_name: "",
   email: "",
   phone: "",
-  lease_start: "",
-  lease_end: "",
-  monthly_rent: 0,
+  lease_start: today,
+  monthly_rent: "",
   notes: "",
-  access_password: "",
 };
 
 const Tenants = () => {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState(initialForm);
 
@@ -39,23 +40,46 @@ const Tenants = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (payload: typeof initialForm) => {
-      const body = {
+    mutationFn: async (payload: typeof initialForm) => {
+      const leaseStart = payload.lease_start || today;
+      const reminderDate = addMonths(new Date(`${leaseStart}T09:00:00`), 1);
+      const tenantBody = {
         ...payload,
-        access_password: payload.access_password || undefined,
-        monthly_rent: Number(payload.monthly_rent),
+        lease_start: leaseStart,
+        lease_end: leaseStart,
+        monthly_rent: Number(payload.monthly_rent || 0),
       };
 
-      return payload.id
-        ? api.put<Tenant>(`/api/tenants/${payload.id}`, body, token)
-        : api.post<Tenant>("/api/tenants", body, token);
+      const response = await (payload.id
+        ? api.put<{ id: string }>(`/api/tenants/${payload.id}`, tenantBody, token)
+        : api.post<{ id: string }>("/api/tenants", tenantBody, token));
+
+      if (!payload.id) {
+        await api.post(
+          "/api/tasks",
+          {
+            property_id: payload.property_id,
+            tenant_id: response.id,
+            title: `Оплата оренди: ${payload.full_name}`,
+            description: "Автоматично створене нагадування після додавання орендаря.",
+            priority: "medium",
+            status: "open",
+            due_date: reminderDate.toISOString().slice(0, 10),
+            reminder_at: reminderDate.toISOString(),
+          },
+          token,
+        );
+      }
+
+      return response;
     },
-    onSuccess: () => {
-      toast.success("Орендаря збережено");
+    onSuccess: (_, payload) => {
+      toast.success(payload.id ? "Орендаря оновлено" : "Орендаря створено");
       setDraft(initialForm);
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 
@@ -65,6 +89,7 @@ const Tenants = () => {
       toast.success("Орендаря видалено");
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 
@@ -83,11 +108,11 @@ const Tenants = () => {
               Новий орендар
             </button>
           }
-          description="Орендарі прив'язані до об'єктів. За потреби одразу створюється доступ tenant."
+          description="Орендарі прив'язані до об'єктів. Після створення автоматично додається нагадування про оплату через місяць."
           title="Орендарі"
         />
 
-        {tenantsQuery.isLoading || propertiesQuery.isLoading ? <LoadingBlock label="Завантаження орендарів…" /> : null}
+        {tenantsQuery.isLoading || propertiesQuery.isLoading ? <LoadingBlock label="Завантаження орендарів..." /> : null}
         {tenantsQuery.error || propertiesQuery.error ? <ErrorBlock label="Не вдалося отримати орендарів або список об'єктів." /> : null}
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -104,7 +129,7 @@ const Tenants = () => {
                 <div className="space-y-2 text-sm text-slate-300">
                   <p>{tenant.email}</p>
                   <p>{tenant.phone}</p>
-                  <p>Договір: {formatDate(tenant.lease_start)} → {formatDate(tenant.lease_end)}</p>
+                  <p>Дата заїзду: {formatDate(tenant.lease_start)}</p>
                   <p>Місячна оренда: {money(tenant.monthly_rent)}</p>
                 </div>
                 <div className="flex gap-2">
@@ -118,10 +143,8 @@ const Tenants = () => {
                         email: tenant.email,
                         phone: tenant.phone,
                         lease_start: tenant.lease_start,
-                        lease_end: tenant.lease_end,
-                        monthly_rent: tenant.monthly_rent,
+                        monthly_rent: String(tenant.monthly_rent),
                         notes: tenant.notes ?? "",
-                        access_password: "",
                       })
                     }
                     type="button"
@@ -154,25 +177,30 @@ const Tenants = () => {
                 <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))} placeholder="Email" required type="email" value={draft.email} />
                 <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} placeholder="Телефон" required value={draft.phone} />
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, lease_start: event.target.value }))} required type="date" value={draft.lease_start} />
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, lease_end: event.target.value }))} required type="date" value={draft.lease_end} />
-              </div>
-              <input className="glass-input" min={0} onChange={(event) => setDraft((current) => ({ ...current, monthly_rent: Number(event.target.value) }))} required type="number" value={draft.monthly_rent} />
-              {!draft.id && user?.role !== "tenant" ? (
-                <input
-                  className="glass-input"
-                  minLength={6}
-                  onChange={(event) => setDraft((current) => ({ ...current, access_password: event.target.value }))}
-                  placeholder="Пароль для tenant-доступу (необов'язково)"
-                  type="password"
-                  value={draft.access_password}
-                />
-              ) : null}
+              <input
+                className="glass-input"
+                onChange={(event) => setDraft((current) => ({ ...current, lease_start: event.target.value }))}
+                placeholder="Дата заїзду"
+                required
+                type="date"
+                value={draft.lease_start}
+              />
+              <input
+                className="glass-input"
+                min={0}
+                onChange={(event) => setDraft((current) => ({ ...current, monthly_rent: event.target.value }))}
+                placeholder="Сума орендної плати"
+                required
+                type="number"
+                value={draft.monthly_rent}
+              />
               <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Нотатки" value={draft.notes} />
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
+                Після створення орендаря автоматично додається нагадування про оплату рівно через місяць.
+              </div>
               <div className="flex gap-3">
                 <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
-                  {mutation.isPending ? "Збереження…" : draft.id ? "Оновити" : "Створити"}
+                  {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">
                   Скинути
