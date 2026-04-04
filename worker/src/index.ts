@@ -329,12 +329,17 @@ async function authRoutes(request: Request, env: Env, pathname: string) {
       return error(409, "User already exists");
     }
 
+    const ownersCount = await env.DB.prepare(
+      "SELECT COUNT(*) AS count FROM users WHERE role IN ('owner', 'superadmin')",
+    ).first<{ count: number | string }>();
+    const role: UserRole = Number(ownersCount?.count ?? 0) === 0 ? "superadmin" : "owner";
+
     const user = {
       id: uuid(),
       email: body.email.toLowerCase(),
       full_name: body.full_name,
       password_hash: await hashPassword(body.password),
-      role: "owner" as UserRole,
+      role,
     };
 
     await env.DB.prepare("INSERT INTO users (id, email, full_name, password_hash, role) VALUES (?, ?, ?, ?, ?)")
