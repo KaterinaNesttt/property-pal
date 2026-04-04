@@ -35,7 +35,7 @@ const AuthPage = () => {
       <div className="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-10 md:px-8">
         <div className="grid w-full gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <section className="glass-card p-8 md:p-10">
-            <p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Property Pal</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-btns">Property Pal</p>
             <h1 className="mt-4 max-w-xl text-4xl font-bold leading-tight text-white md:text-5xl">
               Вас вітає Jopka Corporation.
             </h1>
@@ -58,18 +58,18 @@ const AuthPage = () => {
           <section className="glass-card p-8">
             <div className="flex rounded-full border border-white/10 bg-black/20 p-1">
               <button
-                className={`flex-1 rounded-full px-4 py-2 text-sm ${mode === "login" ? "bg-cyan-400/15 text-white" : "text-slate-400"}`}
+                className={`flex-1 rounded-full px-4 py-2 text-sm ${mode === "login" ? "bg-gradient text-white" : "text-slate-400"}`}
                 onClick={() => setMode("login")}
                 type="button"
               >
                 Вхід
               </button>
               <button
-                className={`flex-1 rounded-full px-4 py-2 text-sm ${mode === "register" ? "bg-cyan-400/15 text-white" : "text-slate-400"}`}
+                className={`flex-1 rounded-full px-4 py-2 text-sm ${mode === "register" ? "bg-gradient text-white" : "text-slate-400"}`}
                 onClick={() => setMode("register")}
                 type="button"
               >
-                Реєстрація owner
+                Реєстрація власника
               </button>
             </div>
 
@@ -100,8 +100,8 @@ const AuthPage = () => {
                 <input className="glass-input" minLength={6} name="password" required type="password" />
               </label>
 
-              <button className="glass-button w-full justify-center bg-cyan-400/15 text-white" disabled={busy} type="submit">
-                {busy ? "Обробка…" : mode === "login" ? "Увійти" : "Створити owner"}
+              <button className="glass-button w-full justify-center bg-gradient text-white" disabled={busy} type="submit">
+                {busy ? "Обробка…" : mode === "login" ? "Увійти" : "Створити власника"}
               </button>
             </form>
           </section>
