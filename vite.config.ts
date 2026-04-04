@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 
-import { cloudflare } from "@cloudflare/vite-plugin";
 
 
 export default defineConfig(({ mode }) => ({
@@ -24,7 +23,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: [react(), cloudflare()],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
