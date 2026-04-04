@@ -1,92 +1,108 @@
-import { TrendingUp, TrendingDown, DollarSign, Building2 } from "lucide-react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { BarChart3, Building2, TrendingDown, TrendingUp } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
-
-const monthlyData = [
-  { month: "Січ", income: 38000, expenses: 8500 },
-  { month: "Лют", income: 40000, expenses: 7200 },
-  { month: "Бер", income: 37800, expenses: 12100 },
-  { month: "Кві", income: 42350, expenses: 6800 },
-];
-
-const propertyROI = [
-  { name: "Хрещатик, 10", income: 15000, expenses: 3200, roi: 12.4 },
-  { name: "Шевченка, 22", income: 10000, expenses: 2100, roi: 9.8 },
-  { name: "Сагайдачного, 3", income: 18000, expenses: 4500, roi: 15.2 },
-];
+import { ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { money, monthKey } from "@/lib/format";
+import { Meter, Payment, Property } from "@/lib/types";
 
 const Analytics = () => {
-  const maxIncome = Math.max(...monthlyData.map(d => d.income));
+  const { token } = useAuth();
+  const propertiesQuery = useQuery({ queryKey: ["properties"], queryFn: () => api.get<Property[]>("/api/properties", token) });
+  const paymentsQuery = useQuery({ queryKey: ["payments"], queryFn: () => api.get<Payment[]>("/api/payments", token) });
+  const metersQuery = useQuery({ queryKey: ["meters"], queryFn: () => api.get<Meter[]>("/api/meters", token) });
+
+  const data = useMemo(() => {
+    const payments = paymentsQuery.data ?? [];
+    const meters = metersQuery.data ?? [];
+
+    const monthly = Array.from(
+      payments.reduce((map, payment) => {
+        const key = monthKey(payment.period_month);
+        const current = map.get(key) ?? { month: key, income: 0, outstanding: 0 };
+        if (payment.status === "paid") {
+          current.income += payment.total_amount;
+        } else {
+          current.outstanding += payment.total_amount;
+        }
+        map.set(key, current);
+        return map;
+      }, new Map<string, { month: string; income: number; outstanding: number }>()),
+    )
+      .map(([, value]) => value)
+      .sort((left, right) => left.month.localeCompare(right.month));
+
+    const utilityCost = meters.reduce((sum, meter) => sum + Math.max(0, meter.current_reading - meter.previous_reading) * meter.tariff, 0);
+
+    return { monthly, utilityCost };
+  }, [metersQuery.data, paymentsQuery.data]);
+
+  if (propertiesQuery.isLoading || paymentsQuery.isLoading || metersQuery.isLoading) {
+    return (
+      <AppLayout>
+        <LoadingBlock label="Завантаження аналітики…" />
+      </AppLayout>
+    );
+  }
+
+  if (propertiesQuery.error || paymentsQuery.error || metersQuery.error) {
+    return (
+      <AppLayout>
+        <ErrorBlock label="Не вдалося зібрати аналітику." />
+      </AppLayout>
+    );
+  }
+
+  const maxColumn = Math.max(1, ...data.monthly.map((item) => Math.max(item.income, item.outstanding)));
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Аналітика</h1>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon={TrendingUp} label="Загальний дохід" value="158 150 ₴" trend="за 4 міс" trendUp />
-          <StatCard icon={TrendingDown} label="Витрати" value="34 600 ₴" />
-          <StatCard icon={DollarSign} label="Чистий прибуток" value="123 550 ₴" trend="+8%" trendUp />
-          <StatCard icon={Building2} label="Середній ROI" value="12.5%" trendUp />
+      <div className="space-y-8">
+        <PageHeader description="Аналітика будується з живих даних оплат і показників лічильників." title="Аналітика" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard icon={TrendingUp} label="Оплачено" tone="success" value={money((paymentsQuery.data ?? []).filter((item) => item.status === "paid").reduce((sum, item) => sum + item.total_amount, 0))} />
+          <StatCard icon={TrendingDown} label="Борг" tone="danger" value={money((paymentsQuery.data ?? []).filter((item) => item.status !== "paid").reduce((sum, item) => sum + item.total_amount, 0))} />
+          <StatCard icon={BarChart3} label="Комунальні" tone="warning" value={money(data.utilityCost)} />
+          <StatCard icon={Building2} label="Об'єкти" value={String((propertiesQuery.data ?? []).length)} />
         </div>
 
-        {/* Chart substitute */}
-        <div className="glass-card p-6 animate-slide-up">
-          <h2 className="text-lg font-semibold text-foreground mb-6">Дохід за місяцями</h2>
-          <div className="flex items-end gap-3 h-48">
-            {monthlyData.map((d, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full flex flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-t-lg bg-primary/30 transition-all duration-500 hover:bg-primary/50"
-                    style={{
-                      height: `${(d.income / maxIncome) * 160}px`,
-                      animationDelay: `${i * 100}ms`,
-                    }}
-                  />
-                  <div
-                    className="w-full rounded-t-lg bg-destructive/25"
-                    style={{ height: `${(d.expenses / maxIncome) * 160}px` }}
-                  />
+        <section className="glass-card">
+          <h2 className="text-xl font-semibold text-white">Динаміка по місяцях</h2>
+          <div className="mt-6 grid min-h-[280px] grid-cols-1 gap-6 md:grid-cols-2">
+            {data.monthly.map((item) => (
+              <div key={item.month} className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">{item.month}</h3>
+                  <span className="text-sm text-slate-400">Звітний місяць</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{d.month}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-6 mt-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm bg-primary/30" />
-              <span>Дохід</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm bg-destructive/25" />
-              <span>Витрати</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ROI per property */}
-        <div className="glass-card p-6 animate-slide-up">
-          <h2 className="text-lg font-semibold text-foreground mb-4">ROI по об'єктах</h2>
-          <div className="space-y-4">
-            {propertyROI.map((p, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-foreground">{p.name}</span>
-                    <span className="text-sm font-bold text-primary">{p.roi}%</span>
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <div className="mb-2 flex items-center justify-between text-sm text-slate-300">
+                      <span>Оплачено</span>
+                      <span>{money(item.income)}</span>
+                    </div>
+                    <div className="h-3 rounded-full bg-white/5">
+                      <div className="h-3 rounded-full bg-emerald-400/70" style={{ width: `${(item.income / maxColumn) * 100}%` }} />
+                    </div>
                   </div>
-                  <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary/60 transition-all duration-700"
-                      style={{ width: `${(p.roi / 20) * 100}%` }}
-                    />
+                  <div>
+                    <div className="mb-2 flex items-center justify-between text-sm text-slate-300">
+                      <span>Борг</span>
+                      <span>{money(item.outstanding)}</span>
+                    </div>
+                    <div className="h-3 rounded-full bg-white/5">
+                      <div className="h-3 rounded-full bg-rose-400/70" style={{ width: `${(item.outstanding / maxColumn) * 100}%` }} />
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
     </AppLayout>
   );

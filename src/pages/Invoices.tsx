@@ -1,64 +1,79 @@
-import { FileText, Download, Share2 } from "lucide-react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { FileText } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
-
-const invoices = [
-  { id: "INV-2026-04-001", property: "вул. Хрещатик, 10, кв. 5", tenant: "Олена Петренко", total: 17220, date: "01.04.2026", status: "sent" },
-  { id: "INV-2026-04-002", property: "вул. Шевченка, 22", tenant: "Ігор Коваленко", total: 12340, date: "01.04.2026", status: "draft" },
-  { id: "INV-2026-03-003", property: "вул. Сагайдачного, 3", tenant: "Марія Сидоренко", total: 18850, date: "01.03.2026", status: "paid" },
-];
-
-const statusConfig: Record<string, { label: string; className: string }> = {
-  draft: { label: "Чернетка", className: "bg-muted text-muted-foreground" },
-  sent: { label: "Відправлено", className: "bg-primary/15 text-primary" },
-  paid: { label: "Оплачено", className: "bg-success/15 text-success" },
-};
+import PageHeader from "@/components/PageHeader";
+import StatusBadge from "@/components/StatusBadge";
+import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { formatDate, money } from "@/lib/format";
+import { Payment } from "@/lib/types";
 
 const Invoices = () => {
+  const { token } = useAuth();
+  const paymentsQuery = useQuery({
+    queryKey: ["payments"],
+    queryFn: () => api.get<Payment[]>("/api/payments", token),
+  });
+
+  const invoices = useMemo(
+    () =>
+      (paymentsQuery.data ?? []).map((payment) => ({
+        id: `INV-${payment.period_month.replace("-", "")}-${payment.id.slice(0, 6).toUpperCase()}`,
+        property: payment.property_name ?? "Без об'єкта",
+        tenant: payment.tenant_name ?? "Без орендаря",
+        total: payment.total_amount,
+        due_date: payment.due_date,
+        status: payment.status,
+      })),
+    [paymentsQuery.data],
+  );
+
+  if (paymentsQuery.isLoading) {
+    return (
+      <AppLayout>
+        <LoadingBlock label="Завантаження рахунків…" />
+      </AppLayout>
+    );
+  }
+
+  if (paymentsQuery.error) {
+    return (
+      <AppLayout>
+        <ErrorBlock label="Не вдалося згенерувати рахунки з оплат." />
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Накладні</h1>
-          <button className="glass-button flex items-center gap-2 text-sm text-primary">
-            <FileText className="w-4 h-4" />
-            <span className="hidden md:inline">Створити</span>
-          </button>
-        </div>
-
+      <div className="space-y-8">
+        <PageHeader description="Рахунки генеруються з фактичних записів оплат." title="Рахунки" />
         <div className="space-y-3">
-          {invoices.map((inv, i) => {
-            const st = statusConfig[inv.status];
-            return (
-              <div
-                key={i}
-                className="glass-card p-5 animate-slide-up flex items-center gap-4"
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-5 h-5 text-primary" />
+          {invoices.map((invoice) => (
+            <article key={invoice.id} className="glass-card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="glass-icon h-11 w-11">
+                  <FileText className="h-5 w-5 text-cyan-200" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="font-semibold text-foreground text-sm">{inv.id}</p>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${st.className}`}>{st.label}</span>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="font-semibold text-white">{invoice.id}</h2>
+                    <StatusBadge value={invoice.status} />
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">{inv.tenant} · {inv.property}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="font-bold text-foreground">{inv.total.toLocaleString()} ₴</p>
-                  <p className="text-xs text-muted-foreground">{inv.date}</p>
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">
-                    <Download className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">
-                    <Share2 className="w-4 h-4" />
-                  </button>
+                  <p className="mt-1 text-sm text-slate-300">
+                    {invoice.tenant} · {invoice.property}
+                  </p>
                 </div>
               </div>
-            );
-          })}
+              <div className="text-left md:text-right">
+                <p className="text-lg font-semibold text-white">{money(invoice.total)}</p>
+                <p className="text-sm text-slate-400">До {formatDate(invoice.due_date)}</p>
+              </div>
+            </article>
+          ))}
+          {invoices.length === 0 ? <EmptyBlock label="Немає рахунків для побудови." /> : null}
         </div>
       </div>
     </AppLayout>

@@ -1,0 +1,19 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "property-pal-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-04-04",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "CORS_ORIGIN": "http://localhost:8080"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "property-pal",
+      "database_id": "209d1379-1502-49c7-9dfe-c9eb12cf0c02"
+    }
+  ]
+}

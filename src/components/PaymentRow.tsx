@@ -1,14 +1,9 @@
-import { CreditCard, Droplets, Wifi, Zap } from "lucide-react";
+import { CreditCard, Droplets, Pencil, Trash2, Wifi, Zap } from "lucide-react";
+import { Payment } from "@/lib/types";
+import { formatDate, money } from "@/lib/format";
+import StatusBadge from "@/components/StatusBadge";
 
-interface PaymentRowProps {
-  type: "rent" | "utilities" | "internet" | "other";
-  property: string;
-  amount: number;
-  date: string;
-  status: "paid" | "pending" | "overdue";
-}
-
-const typeIcons = {
+const icons = {
   rent: CreditCard,
   utilities: Droplets,
   internet: Wifi,
@@ -22,33 +17,51 @@ const typeLabels = {
   other: "Інше",
 };
 
-const statusConfig = {
-  paid: { label: "Оплачено", className: "bg-success/15 text-success" },
-  pending: { label: "Очікується", className: "bg-warning/15 text-warning" },
-  overdue: { label: "Прострочено", className: "bg-destructive/15 text-destructive" },
-};
+interface PaymentRowProps {
+  payment: Payment;
+  onEdit: (payment: Payment) => void;
+  onDelete: (payment: Payment) => void;
+  showActions?: boolean;
+}
 
-const PaymentRow = ({ type, property, amount, date, status }: PaymentRowProps) => {
-  const Icon = typeIcons[type];
-  const statusInfo = statusConfig[status];
+const PaymentRow = ({ payment, onEdit, onDelete, showActions = true }: PaymentRowProps) => {
+  const Icon = icons[payment.payment_type];
 
   return (
-    <div className="flex items-center gap-3 p-3 sm:p-4 glass-card hover:scale-[1.01] transition-all duration-300 cursor-pointer overflow-hidden">
-      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+    <div className="glass-card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex min-w-0 items-start gap-4">
+        <div className="glass-icon h-11 w-11 shrink-0">
+          <Icon className="h-5 w-5 text-cyan-200" />
+        </div>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-semibold text-white">{typeLabels[payment.payment_type]}</h3>
+            <StatusBadge value={payment.status} label={payment.status === "paid" ? "Оплачено" : payment.status === "pending" ? "Очікує" : "Прострочено"} />
+          </div>
+          <p className="mt-1 text-sm text-slate-300">{payment.property_name ?? "Без об'єкта"}</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {payment.tenant_name ?? "Без орендаря"} · Період {payment.period_month}
+          </p>
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <p className="font-medium text-foreground text-sm truncate">{typeLabels[type]}</p>
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap ${statusInfo.className}`}>
-            {statusInfo.label}
-          </span>
+
+      <div className="flex flex-col gap-3 md:items-end">
+        <div className="text-left md:text-right">
+          <p className="text-lg font-semibold text-white">{money(payment.total_amount)}</p>
+          <p className="text-xs text-slate-400">
+            До {formatDate(payment.due_date)} · Сплачено {formatDate(payment.paid_at)}
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground truncate">{property}</p>
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-xs text-muted-foreground">{date}</p>
-          <p className="font-semibold text-foreground text-sm">{amount.toLocaleString()} ₴</p>
-        </div>
+        {showActions ? (
+          <div className="flex gap-2">
+            <button className="glass-button" onClick={() => onEdit(payment)} type="button">
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button className="glass-button text-rose-200" onClick={() => onDelete(payment)} type="button">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

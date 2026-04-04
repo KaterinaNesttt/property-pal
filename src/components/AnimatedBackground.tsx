@@ -1,36 +1,19 @@
-import videoSrc from '@/assets/0331.mp4';
+import videoSrc from "@/assets/0331.mp4";
 
 const AnimatedBackground = () => {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      {/* Video background */}
+    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <video
-        className="absolute inset-0 w-full h-full object-cover"
         autoPlay
+        className="absolute inset-0 h-full w-full object-cover"
         loop
         muted
         playsInline
-        style={{
-          filter: 'brightness(0.9) contrast(1.2) saturate(1.1)',
-        }}
       >
         <source src={videoSrc} type="video/mp4" />
-        Your browser does not support the video tag.
       </video>
-
-      {/* Dark overlay for better text readability */}
-      
-
-      {/* Optional: Keep some subtle animated elements */}
-      <div className="absolute inset-0 opacity-20">
-        <div
-          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, hsl(180 80% 60% / 0.3), transparent 70%)',
-            animation: 'float 15s ease-in-out infinite',
-          }}
-        />
-      </div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(56,189,248,0.14),transparent_28%),linear-gradient(180deg,rgba(2,6,23,0.78),rgba(2,6,23,0.96))]" />
+      <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-slate-950/40 to-transparent" />
     </div>
   );
 };

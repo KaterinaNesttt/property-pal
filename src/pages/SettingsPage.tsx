@@ -1,36 +1,38 @@
-import { User, Bell, Shield, Palette } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
-
-const sections = [
-  { icon: User, label: "Профіль", description: "Ім'я, email, пароль" },
-  { icon: Bell, label: "Сповіщення", description: "Push, email нагадування" },
-  { icon: Shield, label: "Безпека", description: "Двофакторна авторизація" },
-  { icon: Palette, label: "Зовнішній вигляд", description: "Тема, мова" },
-];
+import PageHeader from "@/components/PageHeader";
+import { useAuth } from "@/lib/auth";
 
 const SettingsPage = () => {
+  const { user, logout } = useAuth();
+
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Налаштування</h1>
-
-        <div className="space-y-3">
-          {sections.map((s, i) => (
-            <div
-              key={i}
-              className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:scale-[1.01] transition-all duration-300 animate-slide-up"
-              style={{ animationDelay: `${i * 80}ms` }}
+      <div className="space-y-8">
+        <PageHeader description="Профіль, роль, браузерні нагадування та активна сесія." title="Налаштування" />
+        <section className="glass-card grid gap-4 md:grid-cols-2">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Користувач</p>
+            <h2 className="mt-3 text-2xl font-semibold text-white">{user?.full_name}</h2>
+            <p className="mt-2 text-sm text-slate-300">{user?.email}</p>
+            <p className="mt-1 text-sm text-slate-400">Роль: {user?.role}</p>
+          </div>
+          <div className="space-y-3">
+            <button
+              className="glass-button w-full justify-center"
+              onClick={async () => {
+                if ("Notification" in window) {
+                  await Notification.requestPermission();
+                }
+              }}
+              type="button"
             >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <s.icon className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground text-sm">{s.label}</h3>
-                <p className="text-xs text-muted-foreground">{s.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+              Увімкнути локальні нагадування
+            </button>
+            <button className="glass-button w-full justify-center text-rose-200" onClick={logout} type="button">
+              Вийти з акаунта
+            </button>
+          </div>
+        </section>
       </div>
     </AppLayout>
   );
