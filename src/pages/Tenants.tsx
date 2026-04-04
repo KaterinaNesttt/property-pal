@@ -1,5 +1,7 @@
 import { Plus, Phone, Mail, Building2 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
+import { motion } from "framer-motion";
+import { User, Calendar, DollarSign, MapPin, } from "lucide-react";
 
 const tenants = [
   { name: "Олена Петренко", phone: "+380 67 123 4567", email: "olena@email.com", property: "вул. Хрещатик, 10, кв. 5", status: "active", debt: 0 },
