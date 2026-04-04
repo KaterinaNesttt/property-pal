@@ -12,7 +12,6 @@
     "preview": "npm run build && wrangler dev",
     "test": "vitest run",
     "test:watch": "vitest",
-    "worker:check": "tsc --noEmit -p worker/tsconfig.json",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
@@ -68,7 +67,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.31.0",
     "@eslint/js": "^9.32.0",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/typography": "^0.5.16",
