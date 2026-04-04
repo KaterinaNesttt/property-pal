@@ -7,7 +7,7 @@
     "enabled": true
   },
   "vars": {
-    "CORS_ORIGIN": "http://localhost:8080"
+    "CORS_ORIGIN": "https://jopka.pp.ua/"
   },
   "d1_databases": [
     {
