@@ -9,7 +9,8 @@ import {
 } from "@/lib/offline-sync";
 
 const DEFAULT_API_BASE = "https://property-pal-api.roman-v-shkurenko.workers.dev";
-const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_API_BASE;
+const configuredApiBase = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, "");
+const API_BASE = configuredApiBase || DEFAULT_API_BASE;
 
 export class ApiError extends Error {
   status: number;

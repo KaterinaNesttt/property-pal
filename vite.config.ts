@@ -7,7 +7,7 @@ import path from "path";
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "127.0.0.1",
+    host: "localhost",
     port: 8080,
     strictPort: true,
     hmr: {
