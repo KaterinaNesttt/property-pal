@@ -33,13 +33,14 @@ const Dashboard = () => {
 
   useReminders(tasksQuery.data ?? [], paymentsQuery.data ?? []);
 
-  const loading = propertiesQuery.isLoading || paymentsQuery.isLoading || tasksQuery.isLoading || tenantsQuery.isLoading;
+  const loading =
+    propertiesQuery.isLoading || paymentsQuery.isLoading || tasksQuery.isLoading || tenantsQuery.isLoading;
   const error = propertiesQuery.error || paymentsQuery.error || tasksQuery.error || tenantsQuery.error;
 
   if (loading) {
     return (
       <AppLayout>
-        <LoadingBlock label="Завантаження dashboard…" />
+        <LoadingBlock label="Завантаження dashboard..." />
       </AppLayout>
     );
   }
@@ -62,7 +63,9 @@ const Dashboard = () => {
   const monthlyIncome = payments
     .filter((payment) => payment.status === "paid")
     .reduce((sum, payment) => sum + payment.total_amount, 0);
-  const occupancy = properties.length ? Math.round((properties.filter((property) => property.status === "rented").length / properties.length) * 100) : 0;
+  const occupancy = properties.length
+    ? Math.round((properties.filter((property) => property.status === "rented").length / properties.length) * 100)
+    : 0;
 
   return (
     <AppLayout>
@@ -74,10 +77,19 @@ const Dashboard = () => {
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <StatCard icon={Wallet} label="Оплачено" tone="success" value={money(monthlyIncome)} />
-          <StatCard icon={CreditCard} label="Очікує" tone="warning" value={money(outstanding.reduce((sum, item) => sum + item.total_amount, 0))} />
+          <StatCard
+            icon={CreditCard}
+            label="Очікує"
+            tone="warning"
+            value={money(outstanding.reduce((sum, item) => sum + item.total_amount, 0))}
+          />
           <StatCard icon={AlertTriangle} label="Прострочено" tone="danger" value={String(overduePayments.length)} />
           <StatCard icon={Building2} label="Об'єкти" value={String(properties.length)} />
-          <StatCard icon={ListTodo} label="Відкриті задачі" value={String(tasks.filter((task) => task.status !== "done").length)} />
+          <StatCard
+            icon={ListTodo}
+            label="Відкриті задачі"
+            value={String(tasks.filter((task) => task.status !== "done").length)}
+          />
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">

@@ -40,7 +40,7 @@ const AuthPage = () => {
               Вас вітає Jopka Corporation.
             </h1>
             <p className="mt-5 max-w-2xl text-base text-slate-300">
-             Керуй. Посилай. Заробляй.
+              Керуй. Поселяй. Заробляй.
             </p>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               {[
@@ -101,7 +101,7 @@ const AuthPage = () => {
               </label>
 
               <button className="glass-button w-full justify-center bg-gradient text-white" disabled={busy} type="submit">
-                {busy ? "Обробка…" : mode === "login" ? "Увійти" : "Створити власника"}
+                {busy ? "Обробка..." : mode === "login" ? "Увійти" : "Створити власника"}
               </button>
             </form>
           </section>

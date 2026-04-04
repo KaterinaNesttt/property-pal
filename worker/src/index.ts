@@ -97,11 +97,29 @@ const parseBody = async <T>(request: Request) => (await request.json()) as T;
 const nowIso = () => new Date().toISOString();
 const uuid = () => crypto.randomUUID();
 
-function corsHeaders(env: Env) {
+function normalizeOrigin(origin: string) {
+  return origin.replace(/\/$/, "");
+}
+
+function corsHeaders(request: Request, env: Env) {
+  const configuredOrigins = (env.CORS_ORIGIN || "")
+    .split(",")
+    .map((origin) => normalizeOrigin(origin.trim()))
+    .filter(Boolean);
+  const requestOrigin = request.headers.get("Origin");
+  const normalizedRequestOrigin = requestOrigin ? normalizeOrigin(requestOrigin) : null;
+  const allowOrigin =
+    !configuredOrigins.length
+      ? "*"
+      : normalizedRequestOrigin && configuredOrigins.includes(normalizedRequestOrigin)
+        ? normalizedRequestOrigin
+        : configuredOrigins[0];
+
   return {
-    "Access-Control-Allow-Origin": env.CORS_ORIGIN || "*",
+    "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    Vary: "Origin",
   };
 }
 
@@ -373,7 +391,7 @@ async function authRoutes(request: Request, env: Env, pathname: string) {
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders(env) });
+      return new Response(null, { headers: corsHeaders(request, env) });
     }
 
     try {
@@ -381,7 +399,7 @@ export default {
       const authResponse = await authRoutes(request, env, url.pathname);
       if (authResponse) {
         const headers = new Headers(authResponse.headers);
-        Object.entries(corsHeaders(env)).forEach(([key, value]) => headers.set(key, value));
+        Object.entries(corsHeaders(request, env)).forEach(([key, value]) => headers.set(key, value));
         return new Response(authResponse.body, { status: authResponse.status, headers });
       }
 
@@ -404,7 +422,7 @@ export default {
       if (resource === "properties") {
         if (request.method === "GET" && !recordId) {
           const result = await listProperties(env, user);
-          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(env), "Content-Type": "application/json" } });
+          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(request, env), "Content-Type": "application/json" } });
         }
 
         if (request.method === "POST") {
@@ -423,7 +441,7 @@ export default {
             .bind(id, user.role === "superadmin" ? String(body.owner_id || user.id) : user.id, body.name, body.address, body.type, body.status || "free", Number(body.rent_amount || 0), body.notes || null, createdAt, createdAt)
             .run();
           const property = await getProperty(env, id);
-          return json(property, { headers: corsHeaders(env) });
+          return json(property, { headers: corsHeaders(request, env) });
         }
 
         if (recordId && request.method === "PUT") {
@@ -436,7 +454,7 @@ export default {
           )
             .bind(body.name, body.address, body.type, body.status, Number(body.rent_amount || 0), body.notes || null, nowIso(), recordId)
             .run();
-          return json(await getProperty(env, recordId), { headers: corsHeaders(env) });
+          return json(await getProperty(env, recordId), { headers: corsHeaders(request, env) });
         }
 
         if (recordId && request.method === "DELETE") {
@@ -444,14 +462,14 @@ export default {
             return error(403, "Forbidden");
           }
           await env.DB.prepare("DELETE FROM properties WHERE id = ?").bind(recordId).run();
-          return new Response(null, { status: 204, headers: corsHeaders(env) });
+          return new Response(null, { status: 204, headers: corsHeaders(request, env) });
         }
       }
 
       if (resource === "tenants") {
         if (request.method === "GET" && !recordId) {
           const result = await listTenants(env, user);
-          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(env), "Content-Type": "application/json" } });
+          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(request, env), "Content-Type": "application/json" } });
         }
 
         if (request.method === "POST") {
@@ -476,7 +494,7 @@ export default {
           )
             .bind(id, user.role === "superadmin" ? String(body.owner_id || user.id) : user.id, linkedUserId, body.property_id, body.full_name, String(body.email).toLowerCase(), body.phone, body.lease_start, body.lease_end, Number(body.monthly_rent || 0), body.notes || null, createdAt, createdAt)
             .run();
-          return json({ id }, { headers: corsHeaders(env) });
+          return json({ id }, { headers: corsHeaders(request, env) });
         }
 
         if (recordId && request.method === "PUT") {
@@ -490,7 +508,7 @@ export default {
           )
             .bind(body.property_id, body.full_name, String(body.email).toLowerCase(), body.phone, body.lease_start, body.lease_end, Number(body.monthly_rent || 0), body.notes || null, nowIso(), recordId)
             .run();
-          return json({ id: recordId }, { headers: corsHeaders(env) });
+          return json({ id: recordId }, { headers: corsHeaders(request, env) });
         }
 
         if (recordId && request.method === "DELETE") {
@@ -499,14 +517,14 @@ export default {
             return error(403, "Forbidden");
           }
           await env.DB.prepare("DELETE FROM tenants WHERE id = ?").bind(recordId).run();
-          return new Response(null, { status: 204, headers: corsHeaders(env) });
+          return new Response(null, { status: 204, headers: corsHeaders(request, env) });
         }
       }
 
       if (resource === "payments") {
         if (request.method === "GET" && !recordId) {
           const result = await listPayments(env, user);
-          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(env), "Content-Type": "application/json" } });
+          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(request, env), "Content-Type": "application/json" } });
         }
 
         if (request.method === "POST" || request.method === "PUT") {
@@ -526,19 +544,19 @@ export default {
               ? [id, body.property_id, body.tenant_id || null, body.payment_type, body.period_month, Number(body.base_amount || 0), Number(body.utilities_amount || 0), total, body.due_date, body.paid_at || null, status, body.note || null, nowIso(), nowIso()]
               : [body.property_id, body.tenant_id || null, body.payment_type, body.period_month, Number(body.base_amount || 0), Number(body.utilities_amount || 0), total, body.due_date, body.paid_at || null, status, body.note || null, nowIso(), id];
           await env.DB.prepare(sql).bind(...params).run();
-          return json({ id, status, total_amount: total }, { headers: corsHeaders(env) });
+          return json({ id, status, total_amount: total }, { headers: corsHeaders(request, env) });
         }
 
         if (recordId && request.method === "DELETE") {
           await env.DB.prepare("DELETE FROM payments WHERE id = ?").bind(recordId).run();
-          return new Response(null, { status: 204, headers: corsHeaders(env) });
+          return new Response(null, { status: 204, headers: corsHeaders(request, env) });
         }
       }
 
       if (resource === "meters") {
         if (request.method === "GET" && !recordId) {
           const result = await listMeters(env, user);
-          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(env), "Content-Type": "application/json" } });
+          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(request, env), "Content-Type": "application/json" } });
         }
 
         if (request.method === "POST" || request.method === "PUT") {
@@ -556,19 +574,19 @@ export default {
               ? [id, body.property_id, body.meter_type, body.unit, Number(body.previous_reading || 0), Number(body.current_reading || 0), Number(body.tariff || 0), body.reading_date, body.note || null, nowIso(), nowIso()]
               : [body.property_id, body.meter_type, body.unit, Number(body.previous_reading || 0), Number(body.current_reading || 0), Number(body.tariff || 0), body.reading_date, body.note || null, nowIso(), id];
           await env.DB.prepare(sql).bind(...params).run();
-          return json({ id }, { headers: corsHeaders(env) });
+          return json({ id }, { headers: corsHeaders(request, env) });
         }
 
         if (recordId && request.method === "DELETE") {
           await env.DB.prepare("DELETE FROM meters WHERE id = ?").bind(recordId).run();
-          return new Response(null, { status: 204, headers: corsHeaders(env) });
+          return new Response(null, { status: 204, headers: corsHeaders(request, env) });
         }
       }
 
       if (resource === "tasks") {
         if (request.method === "GET" && !recordId) {
           const result = await listTasks(env, user);
-          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(env), "Content-Type": "application/json" } });
+          return new Response(JSON.stringify(result.results ?? []), { headers: { ...corsHeaders(request, env), "Content-Type": "application/json" } });
         }
 
         if (request.method === "POST" || request.method === "PUT") {
@@ -588,19 +606,19 @@ export default {
               ? [id, body.property_id, body.tenant_id || null, body.title, body.description || null, body.priority || "medium", resolvedStatus, body.due_date, body.reminder_at || null, completedAt, nowIso(), nowIso()]
               : [body.property_id, body.tenant_id || null, body.title, body.description || null, body.priority || "medium", resolvedStatus, body.due_date, body.reminder_at || null, completedAt, nowIso(), id];
           await env.DB.prepare(sql).bind(...params).run();
-          return json({ id, status: resolvedStatus }, { headers: corsHeaders(env) });
+          return json({ id, status: resolvedStatus }, { headers: corsHeaders(request, env) });
         }
 
         if (recordId && request.method === "DELETE") {
           await env.DB.prepare("DELETE FROM tasks WHERE id = ?").bind(recordId).run();
-          return new Response(null, { status: 204, headers: corsHeaders(env) });
+          return new Response(null, { status: 204, headers: corsHeaders(request, env) });
         }
       }
 
       return error(404, "Route not found");
     } catch (caught) {
       if (caught instanceof Response) {
-        return new Response(caught.body, { status: caught.status, headers: { ...corsHeaders(env), "Content-Type": "application/json" } });
+        return new Response(caught.body, { status: caught.status, headers: { ...corsHeaders(request, env), "Content-Type": "application/json" } });
       }
 
       const message = caught instanceof Error ? caught.message : "Unknown server error";

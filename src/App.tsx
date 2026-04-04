@@ -24,7 +24,7 @@ const ProtectedRoutes = () => {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="glass-card w-full max-w-sm text-center">
-          <p className="text-lg font-semibold">Завантаження профілю…</p>
+          <p className="text-lg font-semibold">Завантаження профілю...</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Підключення до API та перевірка авторизації.
           </p>

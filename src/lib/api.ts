@@ -1,6 +1,7 @@
 import { ApiErrorPayload } from "@/lib/types";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "";
+const DEFAULT_API_BASE = "https://property-pal-api.roman-v-shkurenko.workers.dev";
+const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? DEFAULT_API_BASE;
 
 export class ApiError extends Error {
   status: number;
