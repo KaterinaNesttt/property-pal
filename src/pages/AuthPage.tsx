@@ -10,7 +10,7 @@ const copy = {
   busy: "\u041e\u0431\u0440\u043e\u0431\u043a\u0430...",
   submitLogin: "\u0423\u0432\u0456\u0439\u0442\u0438",
   submitRegister: "\u0421\u0442\u0432\u043e\u0440\u0438\u0442\u0438 \u0432\u043b\u0430\u0441\u043d\u0438\u043a\u0430",
-  heading: "Вас вітає Property Pal.",
+  heading: "Вас вітає Jopka App",
   subheading: "\u041a\u0435\u0440\u0443\u0439. \u041f\u043e\u0441\u0435\u043b\u044f\u0439. \u0417\u0430\u0440\u043e\u0431\u043b\u044f\u0439.",
   cards: [
     "\u041c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e \u043c\u043e\u0436\u043b\u0438\u0432\u0430 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0437\u0430\u0446\u0456\u044f",
@@ -48,20 +48,20 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient text-foreground">
       <div className="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-10 md:px-8">
         <div className="grid w-full gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <section className="glass-card p-8">
-            <div className="flex rounded-full border border-white/10 bg-black/20 p-1">
+          <section className="glass-card p-8 shadow-sm">
+            <div className="flex rounded-full border border-black/10 bg-black/20 p-1">
               <button
-                className={`flex-1 rounded-full px-4 py-2 text-sm ${mode === "login" ? "bg-gradient text-white" : "text-slate-400"}`}
+                className={`flex-1 rounded-full px-4 py-2 text-sm ${mode === "login" ? "bg-gradient-blue text-white" : "text-slate-400"}`}
                 onClick={() => setMode("login")}
                 type="button"
               >
                 {copy.login}
               </button>
               <button
-                className={`flex-1 rounded-full px-4 py-2 text-sm ${mode === "register" ? "bg-gradient text-white" : "text-slate-400"}`}
+                className={`flex-1 rounded-full px-4 py-2 text-sm ${mode === "register" ? "bg-gradient-blue text-white" : "text-slate-400"}`}
                 onClick={() => setMode("register")}
                 type="button"
               >
@@ -96,19 +96,19 @@ const AuthPage = () => {
                 <input className="glass-input" minLength={6} name="password" required type="password" />
               </label>
 
-              <button className="glass-button w-full justify-center bg-gradient text-white" disabled={busy} type="submit">
+              <button className="glass-button w-full justify-center bg-gradient-blue text-white" disabled={busy} type="submit">
                 {busy ? copy.busy : mode === "login" ? copy.submitLogin : copy.submitRegister}
               </button>
             </form>
           </section>
 
-          <section className="glass-card p-8 md:p-10">
-            <p className="text-xs uppercase tracking-[0.24em] text-btns">Property Pal</p>
-            <h1 className="mt-4 max-w-xl text-4xl font-bold leading-tight text-white md:text-5xl">{copy.heading}</h1>
+          <section className="glass-card bg-gradient p-8 md:p-10">
+            <p className="text-xs uppercase tracking-[0.24em] text-accent">Jopka corp.</p>
+            <h1 className="mt-4 max-w-xl text-4xl font-bold leading-tight text-white md:text-4xl">{copy.heading}</h1>
             <p className="mt-5 max-w-2xl text-base text-slate-300">{copy.subheading}</p>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               {copy.cards.map((item) => (
-                <div key={item} className="rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-slate-300">
+                <div key={item} className="rounded-3xl border border-black/10 bg-black/20 p-4 text-sm text-slate-300">
                   {item}
                 </div>
               ))}

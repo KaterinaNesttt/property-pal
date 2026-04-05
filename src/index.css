@@ -61,25 +61,35 @@
     --glass-glow: 0 0% 0% / 0.12;
 
     --gradient: linear-gradient(
-    45deg,
-    hsl(288deg 97% 11%) 0%,
-    hsl(292deg 97% 13%) 21%,
-    hsl(296deg 97% 15%) 46%,
-    hsl(299deg 98% 16%) 68%,
-    hsl(303deg 98% 18%) 84%,
-    hsl(307deg 100% 19%) 95%,
-    hsl(311deg 100% 21%) 100%
+    40deg,
+    hsl(310deg 75% 2%) 0%,
+    hsl(302deg 96% 3%) 10%,
+    hsl(295deg 100% 4%) 20%,
+    hsl(293deg 79% 7%) 30%,
+    hsl(291deg 64% 10%) 40%,
+    hsl(295deg 71% 12%) 50%,
+    hsl(295deg 61% 10%) 60%,
+    hsl(300deg 69% 6%) 70%,
+    hsl(301deg 85% 4%) 80%,
+    hsl(304deg 90% 3%) 90%,
+    hsl(308deg 100% 2%) 100%
   );
 
 --gradient-blue: linear-gradient(
     45deg,
-    hsl(214deg 75% 31%) 0%,
-    hsl(212deg 78% 37%) 21%,
-    hsl(210deg 81% 43%) 46%,
-    hsl(208deg 84% 48%) 68%,
-    hsl(205deg 86% 54%) 84%,
-    hsl(203deg 89% 60%) 95%,
-    hsl(201deg 92% 66%) 100%
+    hsl(301deg 96% 11%) 0%,
+    hsl(302deg 95% 13%) 8%,
+    hsl(303deg 94% 15%) 17%,
+    hsl(304deg 94% 17%) 25%,
+    hsl(304deg 93% 19%) 33%,
+    hsl(305deg 93% 21%) 42%,
+    hsl(306deg 92% 23%) 50%,
+    hsl(306deg 92% 25%) 58%,
+    hsl(307deg 93% 28%) 67%,
+    hsl(307deg 93% 30%) 75%,
+    hsl(308deg 94% 32%) 83%,
+    hsl(309deg 95% 34%) 92%,
+    hsl(309deg 97% 36%) 100%
   );
 
 
