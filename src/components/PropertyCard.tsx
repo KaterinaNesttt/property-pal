@@ -1,4 +1,5 @@
 import { Building2, Home, Pencil, Trash2, User } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Property } from "@/lib/types";
 import { money } from "@/lib/format";
 import StatusBadge from "@/components/StatusBadge";
@@ -52,6 +53,9 @@ const PropertyCard = ({ property, onEdit, onDelete, showActions = true }: Proper
         </div>
         {showActions ? (
           <div className="flex gap-2">
+            <Link className="glass-button" to={`/properties/${property.id}`}>
+              Деталі
+            </Link>
             <button className="glass-button flex-1" onClick={() => onEdit(property)} type="button">
               <Pencil className="mr-2 inline h-4 w-4" />
               Редагувати

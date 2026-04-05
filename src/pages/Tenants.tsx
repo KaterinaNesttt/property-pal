@@ -1,13 +1,14 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { addMonths } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { ApiError, api } from "@/lib/api";
 import AppLayout from "@/components/AppLayout";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
-import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { formatDate, money } from "@/lib/format";
 import { Property, Tenant } from "@/lib/types";
@@ -109,13 +110,22 @@ const Tenants = () => {
 
       return response;
     },
-    onSuccess: (_, payload) => {
+    onSuccess: async (_, payload) => {
       toast.success(payload.id ? copy.saved : copy.created);
       setDraft(initialForm);
-      queryClient.invalidateQueries({ queryKey: ["tenants"] });
-      queryClient.invalidateQueries({ queryKey: ["properties"] });
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["tenants"] }),
+        queryClient.invalidateQueries({ queryKey: ["properties"] }),
+        queryClient.invalidateQueries({ queryKey: ["payments"] }),
+        queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+      ]);
+    },
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 409) {
+        toast.error("Для цього об'єкта вже є активний орендар");
+        return;
+      }
+      toast.error("Не вдалося зберегти орендаря");
     },
   });
 
@@ -133,6 +143,14 @@ const Tenants = () => {
     event.preventDefault();
     mutation.mutate(draft);
   };
+
+  const availableProperties = useMemo(
+    () =>
+      (propertiesQuery.data ?? []).filter(
+        (property) => property.status !== "rented" || property.id === draft.property_id,
+      ),
+    [draft.property_id, propertiesQuery.data],
+  );
 
   return (
     <AppLayout>
@@ -157,7 +175,9 @@ const Tenants = () => {
               <article key={tenant.id} className="glass-card space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-white">{tenant.full_name}</h2>
+                    <Link className="text-lg font-semibold text-white transition hover:text-cyan-200" to={`/tenants/${tenant.id}`}>
+                      {tenant.full_name}
+                    </Link>
                     <p className="mt-1 text-sm text-slate-400">{tenant.property_name ?? copy.noProperty}</p>
                   </div>
                   <StatusBadge label={tenant.is_active ? copy.active : copy.inactive} value={tenant.is_active ? "active" : "inactive"} />
@@ -202,9 +222,9 @@ const Tenants = () => {
             <form className="mt-5 grid gap-4" onSubmit={submit}>
               <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
                 <option value="">{copy.selectProperty}</option>
-                {(propertiesQuery.data ?? []).map((property) => (
+                {availableProperties.map((property) => (
                   <option key={property.id} value={property.id}>
-                    {property.name}
+                    {property.name} {property.status === "rented" ? "(зайнятий)" : ""}
                   </option>
                 ))}
               </select>

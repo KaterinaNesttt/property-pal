@@ -75,6 +75,11 @@ const Properties = () => {
     mutation.mutate(draft);
   };
 
+  const activeTenantsCount = useMemo(
+    () => (tenantsQuery.data ?? []).filter((tenant) => tenant.is_active === 1).length,
+    [tenantsQuery.data],
+  );
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -159,7 +164,7 @@ const Properties = () => {
               />
               <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Нотатки" value={draft.notes} />
               <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
-                Активних орендарів: {(tenantsQuery.data ?? []).filter((tenant) => tenant.is_active === 1).length}. Поточна роль: {user?.role}.
+                Активних орендарів: {activeTenantsCount}. Поточна роль: {user?.role}.
               </div>
               <div className="flex gap-3">
                 <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">

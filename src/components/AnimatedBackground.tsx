@@ -12,7 +12,7 @@ const AnimatedBackground = () => {
       >
         <source src={videoSrc} type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(56,189,248,0.14),transparent_28%),linear-gradient(180deg,rgba(2,6,23,0.78),rgba(2,6,23,0.96))]" />
+      
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-slate-950/40 to-transparent" />
     </div>
   );

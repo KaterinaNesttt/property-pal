@@ -569,6 +569,14 @@ async function syncPropertyStatus(env: Env, propertyId: string) {
   ).bind(nextStatus, new Date().toISOString(), propertyId).run();
 }
 
+async function getActiveTenantForProperty(env: Env, propertyId: string, excludeTenantId?: string) {
+  const sql = excludeTenantId
+    ? "SELECT * FROM tenants WHERE property_id = ? AND is_active = 1 AND id != ? LIMIT 1"
+    : "SELECT * FROM tenants WHERE property_id = ? AND is_active = 1 LIMIT 1";
+  const bindValues = excludeTenantId ? [propertyId, excludeTenantId] : [propertyId];
+  return await env.DB.prepare(sql).bind(...bindValues).first<TenantRow>();
+}
+
 async function listProperties(env: Env, session: SessionUser) {
   const sql = `
     SELECT
@@ -856,6 +864,12 @@ async function handleProperties(request: Request, env: Env, pathname: string) {
     return jsonResponse(request, env, await listProperties(env, session));
   }
 
+  if (request.method === "GET" && propertyId) {
+    const property = await assertPropertyAccess(env, session, propertyId);
+    const tenant = await getActiveTenantForProperty(env, propertyId);
+    return jsonResponse(request, env, mapProperty({ ...property, tenant_name: tenant?.full_name ?? null }));
+  }
+
   await assertOwnerMutationAccess(session);
 
   if (request.method === "POST" && !propertyId) {
@@ -923,11 +937,24 @@ async function handleTenants(request: Request, env: Env, pathname: string) {
     return jsonResponse(request, env, await listTenants(env, session));
   }
 
+  if (request.method === "GET" && tenantId) {
+    const tenant = await getOwnedTenantRow(env, session, tenantId);
+    if (!tenant) {
+      throw new HttpError(404, "Tenant not found");
+    }
+    const property = await assertPropertyAccess(env, session, tenant.property_id);
+    return jsonResponse(request, env, mapTenant({ ...tenant, property_name: property.name }));
+  }
+
   await assertOwnerMutationAccess(session);
 
   if (request.method === "POST" && !tenantId) {
     const body = await parseBody<Record<string, unknown>>(request);
     const property = await assertPropertyAccess(env, session, asString(body.property_id, "property_id"));
+    const activeTenant = await getActiveTenantForProperty(env, property.id);
+    if (activeTenant) {
+      throw new HttpError(409, "Property already has an active tenant");
+    }
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
@@ -970,6 +997,10 @@ async function handleTenants(request: Request, env: Env, pathname: string) {
   if (request.method === "PUT") {
     const body = await parseBody<Record<string, unknown>>(request);
     const nextProperty = await assertPropertyAccess(env, session, asString(body.property_id, "property_id"));
+    const activeTenant = await getActiveTenantForProperty(env, nextProperty.id, tenantId);
+    if (activeTenant) {
+      throw new HttpError(409, "Property already has an active tenant");
+    }
 
     await env.DB.prepare(
       "UPDATE tenants SET property_id = ?, full_name = ?, email = ?, phone = ?, lease_start = ?, lease_end = ?, monthly_rent = ?, notes = ?, updated_at = ? WHERE id = ?",

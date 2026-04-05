@@ -14,8 +14,10 @@ import Invoices from "./pages/Invoices";
 import Meters from "./pages/Meters";
 import NotFound from "./pages/NotFound";
 import Payments from "./pages/Payments";
+import PropertyDetails from "./pages/PropertyDetails";
 import Properties from "./pages/Properties";
 import SettingsPage from "./pages/SettingsPage";
+import TenantDetails from "./pages/TenantDetails";
 import Tasks from "./pages/Tasks";
 import Tenants from "./pages/Tenants";
 
@@ -111,8 +113,10 @@ const ProtectedRoutes = () => {
     <Routes>
       <Route path="/" element={<Dashboard />} />
       <Route path="/properties" element={<Properties />} />
+      <Route path="/properties/:id" element={<PropertyDetails />} />
       <Route path="/payments" element={<Payments />} />
       <Route path="/tenants" element={<Tenants />} />
+      <Route path="/tenants/:id" element={<TenantDetails />} />
       <Route path="/meters" element={<Meters />} />
       <Route path="/tasks" element={<Tasks />} />
       <Route path="/analytics" element={<Analytics />} />
