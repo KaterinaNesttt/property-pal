@@ -1,0 +1,13 @@
+name = "property-pal-api"
+main = "src/index.ts"
+compatibility_date = "2026-04-05"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "jopka_korp"
+database_id = "aecbbe66-d30e-4d8a-926a-cfcb1d804562"
+
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "jopka"
