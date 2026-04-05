@@ -38,7 +38,7 @@ const json = (body: unknown, init: ResponseInit = {}) =>
 const error = (status: number, message: string, details?: string) => json({ error: message, details }, { status });
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-const PBKDF2_ITERATIONS = 310000;
+const PBKDF2_ITERATIONS = 100000;
 
 const base64UrlEncode = (value: ArrayBuffer | Uint8Array | string) => {
   const bytes =
@@ -853,7 +853,10 @@ export default {
       }
 
       const message = caught instanceof Error ? caught.message : "Unknown server error";
-      return error(500, "Internal Server Error", message);
+      return json(
+        { error: "Internal Server Error", details: message },
+        { status: 500, headers: corsHeaders(request, env) },
+      );
     }
   },
 } satisfies ExportedHandler<Env>;
