@@ -1,235 +1,273 @@
-import { ChangeEvent, PointerEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from “react”;
+import { ZoomIn, ZoomOut } from “lucide-react”;
+import { Slider } from “@/components/ui/slider”;
 
 interface ProfileAvatarEditorProps {
-  avatar: string | null;
-  scale: number;
-  x: number;
-  y: number;
-  onSave: (patch: { avatar: string | null; avatarScale: number; avatarX: number; avatarY: number }) => void;
+avatar: string | null;
+scale: number;
+x: number;
+y: number;
+onSave: (patch: { avatar: string | null; avatarScale: number; avatarX: number; avatarY: number }) => void;
 }
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const CANVAS_SIZE = 256;
+const CIRCLE_RADIUS = 112;
+const OUTPUT_SIZE = 512;
 
-const distance = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+const ProfileAvatarEditor = ({ avatar, onSave }: ProfileAvatarEditorProps) => {
+const inputRef = useRef<HTMLInputElement | null>(null);
+const canvasRef = useRef<HTMLCanvasElement>(null);
+const imgRef = useRef<HTMLImageElement | null>(null);
 
-const ProfileAvatarEditor = ({ avatar, scale, x, y, onSave }: ProfileAvatarEditorProps) => {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
-  const dragOriginRef = useRef<{ x: number; y: number; pointerX: number; pointerY: number } | null>(null);
-  const pinchOriginRef = useRef<{ distance: number; scale: number } | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const [draft, setDraft] = useState({ avatar, scale, x, y });
-  const [hasChanges, setHasChanges] = useState(false);
+const [imageSrc, setImageSrc] = useState<string | null>(avatar);
+const [imgLoaded, setImgLoaded] = useState(false);
+const [baseScale, setBaseScale] = useState(1);
+const [zoom, setZoom] = useState(1);
+const [offset, setOffset] = useState({ x: 0, y: 0 });
+const [dragging, setDragging] = useState(false);
+const [hasChanges, setHasChanges] = useState(false);
 
-  useEffect(() => {
-    setDraft({ avatar, scale, x, y });
-    setHasChanges(false);
-  }, [avatar, scale, x, y]);
+const dragStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
 
-  const previewStyle = useMemo(
-    () => ({
-      transform: `translate(${draft.x}px, ${draft.y}px) scale(${draft.scale})`,
-      transformOrigin: "center center",
-    }),
-    [draft],
-  );
+/* Завантажуємо зображення при зміні src */
+useEffect(() => {
+if (!imageSrc) {
+setImgLoaded(false);
+imgRef.current = null;
+return;
+}
+const img = new Image();
+img.onload = () => {
+imgRef.current = img;
+const coverSize = CIRCLE_RADIUS * 2;
+const scale = coverSize / Math.min(img.width, img.height);
+setBaseScale(scale);
+setZoom(1);
+setOffset({ x: 0, y: 0 });
+setImgLoaded(true);
+};
+img.src = imageSrc;
+return () => { setImgLoaded(false); };
+}, [imageSrc]);
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
+/* Малюємо прев’ю на canvas */
+useEffect(() => {
+if (!imgLoaded || !imgRef.current || !canvasRef.current) return;
+const ctx = canvasRef.current.getContext(“2d”);
+if (!ctx) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setDraft((current) => ({
-        avatar: typeof reader.result === "string" ? reader.result : null,
-        scale: current.scale || 1,
-        x: current.x || 0,
-        y: current.y || 0,
-      }));
-      setHasChanges(true);
-    };
-    reader.readAsDataURL(file);
-  };
+```
+const img = imgRef.current;
+const s = baseScale * zoom;
+const w = img.width * s;
+const h = img.height * s;
+const cx = CANVAS_SIZE / 2;
+const cy = CANVAS_SIZE / 2;
+const dx = cx - w / 2 + offset.x;
+const dy = cy - h / 2 + offset.y;
 
-  const updateSinglePointerDrag = (pointerId: number, point: { x: number; y: number }) => {
-    const pointers = pointersRef.current;
-    if (pointers.size !== 1) {
-      return;
-    }
+ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    const origin = dragOriginRef.current;
-    if (!origin || !pointers.has(pointerId)) {
-      return;
-    }
+/* Затемнений фон */
+ctx.save();
+ctx.drawImage(img, dx, dy, w, h);
+ctx.fillStyle = "rgba(0,0,0,0.55)";
+ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    setDraft((current) => ({
-      ...current,
-      x: origin.x + point.x - origin.pointerX,
-      y: origin.y + point.y - origin.pointerY,
-    }));
-    setHasChanges(true);
-  };
+/* Яскраве коло */
+ctx.save();
+ctx.beginPath();
+ctx.arc(cx, cy, CIRCLE_RADIUS, 0, Math.PI * 2);
+ctx.clip();
+ctx.drawImage(img, dx, dy, w, h);
+ctx.restore();
 
-  const updatePinch = () => {
-    const points = [...pointersRef.current.values()];
-    if (points.length !== 2) {
-      return;
-    }
+/* Обводка кола */
+ctx.beginPath();
+ctx.arc(cx, cy, CIRCLE_RADIUS, 0, Math.PI * 2);
+ctx.strokeStyle = "rgba(255,255,255,0.7)";
+ctx.lineWidth = 2;
+ctx.stroke();
+ctx.restore();
+```
 
-    const start = pinchOriginRef.current;
-    if (!start) {
-      return;
-    }
+}, [imgLoaded, zoom, offset, baseScale]);
 
-    const nextScale = clamp((distance(points[0], points[1]) / start.distance) * start.scale, 1, 3);
-    setDraft((current) => ({ ...current, scale: nextScale }));
-    setHasChanges(true);
-  };
+/* Drag */
+const handlePointerDown = useCallback((e: React.PointerEvent) => {
+setDragging(true);
+dragStart.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y };
+(e.target as HTMLElement).setPointerCapture(e.pointerId);
+}, [offset]);
 
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!draft.avatar) {
-      return;
-    }
+const handlePointerMove = useCallback((e: React.PointerEvent) => {
+if (!dragging) return;
+setOffset({
+x: dragStart.current.ox + e.clientX - dragStart.current.x,
+y: dragStart.current.oy + e.clientY - dragStart.current.y,
+});
+setHasChanges(true);
+}, [dragging]);
 
-    const point = { x: event.clientX, y: event.clientY };
-    pointersRef.current.set(event.pointerId, point);
+const handlePointerUp = useCallback(() => setDragging(false), []);
 
-    if (pointersRef.current.size === 1) {
-      dragOriginRef.current = { x: draft.x, y: draft.y, pointerX: point.x, pointerY: point.y };
-      setDragging(true);
-    }
+const handleWheel = useCallback((e: React.WheelEvent) => {
+e.preventDefault();
+setZoom((z) => Math.max(0.5, Math.min(4, z - e.deltaY * 0.002)));
+setHasChanges(true);
+}, []);
 
-    if (pointersRef.current.size === 2) {
-      const points = [...pointersRef.current.values()];
-      pinchOriginRef.current = {
-        distance: distance(points[0], points[1]),
-        scale: draft.scale,
-      };
-    }
+/* Вибір файлу */
+const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+const file = event.target.files?.[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = () => {
+setImageSrc(reader.result as string);
+setHasChanges(true);
+};
+reader.readAsDataURL(file);
+event.target.value = “”;
+};
 
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
+/* Кроп і збереження */
+const handleSave = () => {
+if (!imgRef.current) return;
 
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!draft.avatar || !pointersRef.current.has(event.pointerId)) {
-      return;
-    }
+```
+const img = imgRef.current;
+const cropCanvas = document.createElement("canvas");
+cropCanvas.width = OUTPUT_SIZE;
+cropCanvas.height = OUTPUT_SIZE;
+const ctx = cropCanvas.getContext("2d");
+if (!ctx) return;
 
-    const point = { x: event.clientX, y: event.clientY };
-    pointersRef.current.set(event.pointerId, point);
+const s = baseScale * zoom;
+const w = img.width * s;
+const h = img.height * s;
+const cx = CANVAS_SIZE / 2;
+const cy = CANVAS_SIZE / 2;
+const dx = cx - w / 2 + offset.x;
+const dy = cy - h / 2 + offset.y;
 
-    if (pointersRef.current.size === 1) {
-      updateSinglePointerDrag(event.pointerId, point);
-      return;
-    }
+const srcX = (cx - CIRCLE_RADIUS - dx) / s;
+const srcY = (cy - CIRCLE_RADIUS - dy) / s;
+const srcSize = (CIRCLE_RADIUS * 2) / s;
 
-    if (pointersRef.current.size === 2) {
-      updatePinch();
-    }
-  };
+/* Кругле обрізання */
+ctx.beginPath();
+ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
+ctx.clip();
+ctx.drawImage(img, srcX, srcY, srcSize, srcSize, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
-  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    pointersRef.current.delete(event.pointerId);
-    if (pointersRef.current.size < 2) {
-      pinchOriginRef.current = null;
-    }
-    if (!pointersRef.current.size) {
-      dragOriginRef.current = null;
-      setDragging(false);
-    }
-  };
+const croppedDataUrl = cropCanvas.toDataURL("image/png", 0.95);
 
-  return (
-    <div className="space-y-4">
-      <div
-        className={`relative mx-auto h-56 w-56 overflow-hidden rounded-[2rem] border border-white/10 bg-black/30 ${avatar ? "touch-none" : ""} ${
-          dragging ? "cursor-grabbing" : "cursor-grab"
-        }`}
-        onPointerCancel={handlePointerUp}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-      >
-        {draft.avatar ? (
-          <>
-            <img
-              alt="Avatar preview"
-              className="absolute inset-0 h-full w-full select-none object-cover"
-              draggable={false}
-              src={draft.avatar}
-              style={previewStyle}
-            />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(2,6,23,0.85)_46%)]" />
-            <div className="pointer-events-none absolute left-1/2 top-1/2 h-[88px] w-[88px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/40" />
-          </>
-        ) : (
-          <button
-            className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-slate-300"
-            onClick={() => inputRef.current?.click()}
-            type="button"
-          >
-            Додати аватарку
-          </button>
-        )}
-      </div>
+onSave({
+  avatar: croppedDataUrl,
+  avatarScale: 1,
+  avatarX: 0,
+  avatarY: 0,
+});
+setHasChanges(false);
+```
 
-      <div className="flex gap-2">
-        <button className="glass-button flex-1" onClick={() => inputRef.current?.click()} type="button">
-          Змінити фото
-        </button>
-        {draft.avatar ? (
-          <button
-            className="glass-button text-rose-200"
-            onClick={() => {
-              setDraft({ avatar: null, scale: 1, x: 0, y: 0 });
-              setHasChanges(true);
-            }}
-            type="button"
-          >
-            Видалити
-          </button>
-        ) : null}
-      </div>
+};
 
-      {hasChanges ? (
-        <div className="flex gap-2">
-          <button
-            className="glass-button flex-1 bg-btns/15 text-white"
-            onClick={() => {
-              onSave({
-                avatar: draft.avatar,
-                avatarScale: draft.scale,
-                avatarX: draft.x,
-                avatarY: draft.y,
-              });
-              setHasChanges(false);
-            }}
-            type="button"
-          >
-            Застосувати
-          </button>
-          <button
-            className="glass-button text-slate-400"
-            onClick={() => {
-              setDraft({ avatar, scale, x, y });
-              setHasChanges(false);
-            }}
-            type="button"
-          >
-            Скасувати
-          </button>
-        </div>
-      ) : null}
+const handleDelete = () => {
+setImageSrc(null);
+setImgLoaded(false);
+setHasChanges(true);
+onSave({ avatar: null, avatarScale: 1, avatarX: 0, avatarY: 0 });
+};
 
-      <p className="text-center text-xs text-slate-400">
-        Перетягни фото для позиціювання. На тачскріні масштабуй двома пальцями.
-      </p>
+return (
+<div className="space-y-4">
+{/* Canvas прев’ю */}
+<div className="flex justify-center">
+{imageSrc ? (
+<canvas
+ref={canvasRef}
+width={CANVAS_SIZE}
+height={CANVAS_SIZE}
+className={`rounded-2xl border border-white/10 touch-none ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}
+onPointerDown={handlePointerDown}
+onPointerMove={handlePointerMove}
+onPointerUp={handlePointerUp}
+onPointerCancel={handlePointerUp}
+onWheel={handleWheel}
+/>
+) : (
+<button
+className=“flex h-64 w-64 items-center justify-center rounded-2xl border border-white/10 bg-black/30 text-sm text-slate-400”
+onClick={() => inputRef.current?.click()}
+type=“button”
+>
+Додати аватарку
+</button>
+)}
+</div>
 
-      <input accept="image/*" className="hidden" onChange={handleFileChange} ref={inputRef} type="file" />
+```
+  {/* Зум */}
+  {imageSrc && (
+    <div className="flex items-center gap-3 px-2">
+      <ZoomOut className="h-4 w-4 shrink-0 text-slate-400" />
+      <Slider
+        value={[zoom]}
+        min={0.5}
+        max={4}
+        step={0.05}
+        onValueChange={([v]) => { setZoom(v); setHasChanges(true); }}
+        className="flex-1"
+      />
+      <ZoomIn className="h-4 w-4 shrink-0 text-slate-400" />
     </div>
-  );
+  )}
+
+  {/* Кнопки */}
+  <div className="flex gap-2">
+    <button className="glass-button flex-1" onClick={() => inputRef.current?.click()} type="button">
+      {imageSrc ? "Змінити фото" : "Завантажити фото"}
+    </button>
+    {imageSrc && (
+      <button className="glass-button text-rose-200" onClick={handleDelete} type="button">
+        Видалити
+      </button>
+    )}
+  </div>
+
+  {hasChanges && imageSrc && (
+    <div className="flex gap-2">
+      <button
+        className="glass-button flex-1 bg-btns/15 text-white"
+        onClick={handleSave}
+        type="button"
+      >
+        Застосувати
+      </button>
+      <button
+        className="glass-button text-slate-400"
+        onClick={() => {
+          setImageSrc(avatar);
+          setHasChanges(false);
+        }}
+        type="button"
+      >
+        Скасувати
+      </button>
+    </div>
+  )}
+
+  <p className="text-center text-xs text-slate-400">
+    Перетягни для позиціювання · масштабуй двома пальцями або слайдером
+  </p>
+
+  <input accept="image/*" className="hidden" onChange={handleFileChange} ref={inputRef} type="file" />
+</div>
+```
+
+);
 };
 
 export default ProfileAvatarEditor;
