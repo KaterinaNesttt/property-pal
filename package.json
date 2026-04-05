@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name property-pal"
+    "deploy": "npm run build && wrangler"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
