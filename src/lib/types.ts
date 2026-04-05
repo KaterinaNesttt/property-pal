@@ -17,6 +17,7 @@ export interface BadgePreferences {
 export interface UserPreferences {
   themeMode: ThemeMode;
   badgePreferences: BadgePreferences;
+  avatar?: string | null;
   avatarScale: number;
   avatarX: number;
   avatarY: number;

@@ -43,6 +43,15 @@ const Payments = () => {
     queryKey: ["payments"],
     queryFn: () => api.get<Payment[]>("/api/payments", token),
   });
+  const today = new Date().toISOString().slice(0, 10);
+  const payments = useMemo(
+    () =>
+      (paymentsQuery.data ?? []).map((payment) => ({
+        ...payment,
+        status: payment.status === "pending" && payment.due_date < today ? "overdue" : payment.status,
+      })),
+    [paymentsQuery.data, today],
+  );
 
   const mutation = useMutation({
     mutationFn: (payload: typeof initialForm) => {
@@ -71,8 +80,8 @@ const Payments = () => {
   });
 
   const filteredPayments = useMemo(() => {
-    return (paymentsQuery.data ?? []).filter((payment) => (statusFilter === "all" ? true : payment.status === statusFilter));
-  }, [paymentsQuery.data, statusFilter]);
+    return payments.filter((payment) => (statusFilter === "all" ? true : payment.status === statusFilter));
+  }, [payments, statusFilter]);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -89,7 +98,7 @@ const Payments = () => {
               Новий платіж
             </button>
           }
-          description="Сума, статус і прострочення рахуються з backend-логіки, без локальних заглушок."
+          description="Переглядай, фільтруй і керуй оплатами по об'єктах."
           title="Оплати"
         />
 
@@ -97,9 +106,9 @@ const Payments = () => {
         {paymentsQuery.error || propertiesQuery.error || tenantsQuery.error ? <ErrorBlock label="Не вдалося отримати платежі або зв'язані сутності." /> : null}
 
         <div className="grid gap-4 md:grid-cols-3">
-          <StatCard icon={Plus} label="Очікує" tone="warning" value={money((paymentsQuery.data ?? []).filter((item) => item.status === "pending").reduce((sum, item) => sum + item.total_amount, 0))} />
-          <StatCard icon={Plus} label="Оплачено" tone="success" value={money((paymentsQuery.data ?? []).filter((item) => item.status === "paid").reduce((sum, item) => sum + item.total_amount, 0))} />
-          <StatCard icon={Plus} label="Прострочено" tone="danger" value={money((paymentsQuery.data ?? []).filter((item) => item.status === "overdue").reduce((sum, item) => sum + item.total_amount, 0))} />
+          <StatCard icon={Plus} label="Очікує" tone="warning" value={money(payments.filter((item) => item.status === "pending").reduce((sum, item) => sum + item.total_amount, 0))} />
+          <StatCard icon={Plus} label="Оплачено" tone="success" value={money(payments.filter((item) => item.status === "paid").reduce((sum, item) => sum + item.total_amount, 0))} />
+          <StatCard icon={Plus} label="Прострочено" tone="danger" value={money(payments.filter((item) => item.status === "overdue").reduce((sum, item) => sum + item.total_amount, 0))} />
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">

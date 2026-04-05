@@ -312,6 +312,14 @@
   .animate-fade-in {
     animation: fade-in 0.4s ease-out;
   }
+
+  .slide-in-from-top-full {
+    --tw-enter-translate-y: -100%;
+  }
+
+  .slide-out-to-top-full {
+    --tw-exit-translate-y: -100%;
+  }
 }
 
 @keyframes float {

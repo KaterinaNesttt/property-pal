@@ -688,7 +688,13 @@ async function listTasks(env: Env, session: SessionUser) {
 
   sql += " ORDER BY task.due_date ASC, task.created_at DESC";
   const result = await env.DB.prepare(sql).bind(...bindValues).all<TaskRow>();
-  return result.results.map(mapTask);
+  const today = new Date().toISOString().slice(0, 10);
+  return result.results
+    .map((task) => ({
+      ...task,
+      status: task.status !== "done" && task.due_date < today ? "overdue" : task.status,
+    }))
+    .map(mapTask);
 }
 
 async function getOwnedTenantRow(env: Env, session: SessionUser, tenantId: string) {

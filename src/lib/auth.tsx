@@ -36,6 +36,7 @@ const defaultPreferences: UserPreferences = {
     tasks: true,
     invoices: true,
   },
+  avatar: null,
   avatarScale: 1,
   avatarX: 0,
   avatarY: 0,

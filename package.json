@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "worker:check": "wrangler deploy --config worker/wrangler.toml --dry-run",
     "deploy:web": "npm run build && wrangler pages deploy dist --project-name property-pal",
     "deploy:api": "wrangler deploy --config worker/wrangler.toml"
   },

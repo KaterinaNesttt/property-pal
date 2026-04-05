@@ -1,12 +1,14 @@
 import { ChangeEvent, useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import AppLayout from "@/components/AppLayout";
 import PageHeader from "@/components/PageHeader";
 import ProfileAvatarEditor from "@/components/ProfileAvatarEditor";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth";
 
 const SettingsPage = () => {
-  const { preferences, saveProfile, setPreferences, updateBadgePreferences, user } = useAuth();
+  const { preferences, saveProfile, setPreferences, updateBadgePreferences, user, logout } = useAuth();
   const [fullName, setFullName] = useState(user?.full_name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [saving, setSaving] = useState(false);
@@ -54,7 +56,7 @@ const SettingsPage = () => {
     <AppLayout>
       <div className="space-y-8">
         <PageHeader
-          description="Профіль користувача, аватарка, сповіщення та лічильники в мобільному меню."
+          description="Керуй своїм профілем і налаштуваннями застосунку."
           title="Налаштування"
         />
 
@@ -69,21 +71,23 @@ const SettingsPage = () => {
 
             <ProfileAvatarEditor
               avatar={user?.avatar ?? null}
-              onChange={(patch) => {
-                setPreferences(patch);
-                if ("avatar" in patch) {
-                  void saveProfile({
-                    full_name: fullName,
-                    phone,
-                    avatar: patch.avatar ?? null,
-                    preferences: {
-                      ...preferences,
-                      avatarScale: patch.avatarScale ?? preferences.avatarScale,
-                      avatarX: patch.avatarX ?? preferences.avatarX,
-                      avatarY: patch.avatarY ?? preferences.avatarY,
-                    },
-                  });
-                }
+              onSave={(patch) => {
+                setPreferences({
+                  avatarScale: patch.avatarScale,
+                  avatarX: patch.avatarX,
+                  avatarY: patch.avatarY,
+                });
+                void saveProfile({
+                  full_name: fullName,
+                  phone,
+                  avatar: patch.avatar,
+                  preferences: {
+                    ...preferences,
+                    avatarScale: patch.avatarScale,
+                    avatarX: patch.avatarX,
+                    avatarY: patch.avatarY,
+                  },
+                });
               }}
               scale={preferences.avatarScale}
               x={preferences.avatarX}
@@ -142,16 +146,24 @@ const SettingsPage = () => {
               </label>
             </div>
 
-            <button
-              className={`glass-button w-full justify-center ${preferences.themeMode === "purple" ? "bg-fuchsia-500/20 text-white" : ""}`}
-              onClick={togglePurple}
-              type="button"
-            >
+            <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
               Більше фіолетового
-            </button>
+              <Switch checked={preferences.themeMode === "purple"} onCheckedChange={togglePurple} />
+            </label>
 
             <button className="glass-button w-full justify-center bg-cyan-400/15 text-white" disabled={saving} onClick={saveAll} type="button">
               {saving ? "Збереження..." : "Зберегти профіль"}
+            </button>
+
+            <button
+              className="glass-button w-full justify-center border-rose-500/30 text-rose-300 hover:bg-rose-500/10"
+              onClick={() => {
+                logout();
+              }}
+              type="button"
+            >
+              <LogOut className="mr-2 inline h-4 w-4" />
+              Вийти
             </button>
 
             <button

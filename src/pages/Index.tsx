@@ -13,7 +13,7 @@ import { Payment, Property, Task, Tenant } from "@/lib/types";
 import { useReminders } from "@/hooks/use-reminders";
 
 const Dashboard = () => {
-  const { token, user } = useAuth();
+  const { token, user, preferences } = useAuth();
   const propertiesQuery = useQuery({
     queryKey: ["properties"],
     queryFn: () => api.get<Property[]>("/api/properties", token),
@@ -54,7 +54,11 @@ const Dashboard = () => {
   }
 
   const properties = propertiesQuery.data ?? [];
-  const payments = paymentsQuery.data ?? [];
+  const today = new Date().toISOString().slice(0, 10);
+  const payments = (paymentsQuery.data ?? []).map((payment) => ({
+    ...payment,
+    status: payment.status === "pending" && payment.due_date < today ? "overdue" : payment.status,
+  }));
   const tasks = tasksQuery.data ?? [];
   const tenants = tenantsQuery.data ?? [];
 
@@ -70,8 +74,27 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="space-y-8">
+        <div className="mb-2 flex items-center gap-4">
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/10 bg-black/30">
+            {user?.avatar ? (
+              <img
+                alt="Avatar"
+                className="h-full w-full object-cover"
+                src={user.avatar}
+                style={{
+                  transform: `translate(${preferences.avatarX}px, ${preferences.avatarY}px) scale(${preferences.avatarScale})`,
+                  transformOrigin: "center center",
+                }}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-white">
+                {user?.full_name?.slice(0, 1).toUpperCase()}
+              </div>
+            )}
+          </div>
+        </div>
         <PageHeader
-          description={`Роль: ${user?.role}. Дані зчитуються напряму з API та D1.`}
+          description="Огляд ключових показників вашого портфелю."
           title={`Вітаю, ${user?.full_name}`}
         />
 
@@ -83,7 +106,13 @@ const Dashboard = () => {
             tone="warning"
             value={money(outstanding.reduce((sum, item) => sum + item.total_amount, 0))}
           />
-          <StatCard icon={AlertTriangle} label="Прострочено" tone="danger" value={String(overduePayments.length)} />
+          <StatCard
+            className={overduePayments.length > 0 ? "ring-2 ring-rose-500/40" : undefined}
+            icon={AlertTriangle}
+            label="Прострочено"
+            tone="danger"
+            value={String(overduePayments.length)}
+          />
           <StatCard icon={Building2} label="Об'єкти" value={String(properties.length)} />
           <StatCard
             icon={ListTodo}

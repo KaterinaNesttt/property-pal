@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
@@ -5,6 +6,7 @@ interface StatCardProps {
   label: string;
   value: string;
   tone?: "default" | "success" | "warning" | "danger";
+  className?: string;
 }
 
 const toneMap = {
@@ -14,9 +16,9 @@ const toneMap = {
   danger: "from-rose-500/15 to-rose-500/5 text-rose-200",
 };
 
-const StatCard = ({ icon: Icon, label, value, tone = "default" }: StatCardProps) => {
+const StatCard = ({ icon: Icon, label, value, tone = "default", className }: StatCardProps) => {
   return (
-    <div className={`glass-card bg-gradient-to-br ${toneMap[tone]}`}>
+    <div className={cn("glass-card bg-gradient-to-br", toneMap[tone], className)}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm text-slate-300">{label}</p>

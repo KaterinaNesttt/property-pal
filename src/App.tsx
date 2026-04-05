@@ -133,7 +133,12 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <OfflineSyncBridge />
-        <Sonner />
+        <Sonner
+          position="top-center"
+          toastOptions={{
+            style: { top: "1rem" },
+          }}
+        />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ProtectedRoutes />
         </BrowserRouter>

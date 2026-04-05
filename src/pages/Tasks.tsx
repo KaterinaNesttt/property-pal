@@ -82,7 +82,7 @@ const Tasks = () => {
   return (
     <AppLayout>
       <div className="space-y-8">
-        <PageHeader description="Локальні нагадування спрацьовують через браузерний Notification API." title="Задачі" />
+        <PageHeader description="Переглядай та керуй своїми задачами по об'єктах." title="Задачі" />
 
         {tasksQuery.isLoading || propertiesQuery.isLoading || tenantsQuery.isLoading ? <LoadingBlock label="Завантаження задач..." /> : null}
         {tasksQuery.error || propertiesQuery.error || tenantsQuery.error ? <ErrorBlock label="Не вдалося отримати задачі або зв'язані сутності." /> : null}

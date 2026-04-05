@@ -16,10 +16,19 @@ const Invoices = () => {
     queryKey: ["payments"],
     queryFn: () => api.get<Payment[]>("/api/payments", token),
   });
+  const today = new Date().toISOString().slice(0, 10);
+  const payments = useMemo(
+    () =>
+      (paymentsQuery.data ?? []).map((payment) => ({
+        ...payment,
+        status: payment.status === "pending" && payment.due_date < today ? "overdue" : payment.status,
+      })),
+    [paymentsQuery.data, today],
+  );
 
   const invoices = useMemo(
     () =>
-      (paymentsQuery.data ?? []).map((payment) => ({
+      payments.map((payment) => ({
         id: `INV-${payment.period_month.replace("-", "")}-${payment.id.slice(0, 6).toUpperCase()}`,
         property: payment.property_name ?? "Без об'єкта",
         tenant: payment.tenant_name ?? "Без орендаря",
@@ -27,7 +36,7 @@ const Invoices = () => {
         due_date: payment.due_date,
         status: payment.status,
       })),
-    [paymentsQuery.data],
+    [payments],
   );
 
   if (paymentsQuery.isLoading) {
@@ -49,7 +58,7 @@ const Invoices = () => {
   return (
     <AppLayout>
       <div className="space-y-8">
-        <PageHeader description="Рахунки генеруються з фактичних записів оплат." title="Рахунки" />
+        <PageHeader description="Перегляд та відстеження рахунків." title="Рахунки" />
         <div className="space-y-3">
           {invoices.map((invoice) => (
             <article key={invoice.id} className="glass-card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

@@ -62,7 +62,7 @@ const Analytics = () => {
   return (
     <AppLayout>
       <div className="space-y-8">
-        <PageHeader description="Аналітика будується з живих даних оплат і показників лічильників." title="Аналітика" />
+        <PageHeader description="Фінансова аналітика по об'єктах і орендарях." title="Аналітика" />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard icon={TrendingUp} label="Оплачено" tone="success" value={money((paymentsQuery.data ?? []).filter((item) => item.status === "paid").reduce((sum, item) => sum + item.total_amount, 0))} />
           <StatCard icon={TrendingDown} label="Борг" tone="danger" value={money((paymentsQuery.data ?? []).filter((item) => item.status !== "paid").reduce((sum, item) => sum + item.total_amount, 0))} />
