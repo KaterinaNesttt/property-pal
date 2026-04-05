@@ -1,4 +1,4 @@
-name = "property-pal-api"
+name = "jopka-rent-api"
 main = "src/index.ts"
 compatibility_date = "2026-04-05"
 workers_dev = true
