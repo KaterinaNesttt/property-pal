@@ -13,7 +13,7 @@ const AnimatedBackground = () => {
         <source src={videoSrc} type="video/mp4" />
       </video>
       
-      <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-slate-950/40 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-48" />
     </div>
   );
 };

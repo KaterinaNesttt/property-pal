@@ -85,7 +85,7 @@ const Properties = () => {
       <div className="space-y-8">
         <PageHeader
           actions={
-            <button className="glass-button bg-cyan-400/15 text-white" onClick={() => setDraft(initialForm)} type="button">
+            <button className="glass-button bg-btns/15 text-white" onClick={() => setDraft(initialForm)} type="button">
               <Plus className="mr-2 inline h-4 w-4" />
               Новий об'єкт
             </button>
@@ -163,11 +163,11 @@ const Properties = () => {
                 value={draft.rent_amount}
               />
               <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Нотатки" value={draft.notes} />
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
+              <div className="rounded-2xl border border-black/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
                 Активних орендарів: {activeTenantsCount}. Поточна роль: {user?.role}.
               </div>
               <div className="flex gap-3">
-                <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
+                <button className="glass-button flex-1 justify-center bg-btns/15 text-white" disabled={mutation.isPending} type="submit">
                   {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">

@@ -6,14 +6,14 @@ import { NavLink, useLocation } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { Payment, Property, Task } from "@/lib/types";
-
+ 
 const mainItems = [
   { to: "/", icon: Home, label: "Головна" },
   { to: "/properties", icon: Building2, label: "Об'єкти", badgeKey: "properties" as const },
   { to: "/payments", icon: CreditCard, label: "Оплати" },
   { to: "/tasks", icon: ListTodo, label: "Задачі", badgeKey: "tasks" as const },
 ];
-
+ 
 const extraItems = [
   { to: "/tenants", icon: Users, label: "Орендарі" },
   { to: "/meters", icon: Gauge, label: "Лічильники" },
@@ -21,12 +21,12 @@ const extraItems = [
   { to: "/invoices", icon: FileText, label: "Рахунки" },
   { to: "/settings", icon: Settings, label: "Налаштування" },
 ];
-
+ 
 const MobileNav = () => {
   const location = useLocation();
   const { token, user, preferences } = useAuth();
   const [open, setOpen] = useState(false);
-
+ 
   const propertiesQuery = useQuery({
     queryKey: ["properties"],
     queryFn: () => api.get<Property[]>("/api/properties", token),
@@ -42,7 +42,7 @@ const MobileNav = () => {
     queryFn: () => api.get<Payment[]>("/api/payments", token),
     enabled: Boolean(token),
   });
-
+ 
   const counts = useMemo(
     () => ({
       properties: (propertiesQuery.data ?? []).filter((property) => property.status === "free").length,
@@ -51,15 +51,15 @@ const MobileNav = () => {
     }),
     [paymentsQuery.data, propertiesQuery.data, tasksQuery.data],
   );
-
+ 
   const showBadge = (key: "properties" | "tasks" | "invoices") =>
     preferences.badgePreferences.all && preferences.badgePreferences[key];
-
+ 
   const avatarStyle = {
     transform: `translate(${preferences.avatarX}px, ${preferences.avatarY}px) scale(${preferences.avatarScale})`,
     transformOrigin: "center center",
   };
-
+ 
   return (
     <>
       <AnimatePresence>
@@ -75,15 +75,15 @@ const MobileNav = () => {
               type="button"
             />
             <motion.aside
-              className="fixed inset-y-0 right-0 z-50 flex w-[min(92vw,360px)] flex-col border-l border-white/10 bg-black/88 p-5 shadow-2xl backdrop-blur-2xl"
+              className="fixed inset-y-0 right-0 z-50 flex w-[min(92vw,360px)] flex-col border-l border-black/10 bg-black/88 p-5 shadow-2xl backdrop-blur-2xl"
               initial={{ x: "100%", opacity: 0.9 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0.95 }}
               transition={{ type: "spring", stiffness: 280, damping: 28 }}
             >
-              <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+              <div className="flex items-start justify-between gap-4 border-b border-black/10 pb-5">
                 <div className="flex items-center gap-4">
-                  <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-black/30">
+                  <div className="relative h-14 w-14 overflow-hidden rounded-full border border-black/10 bg-black/30">
                     {user?.avatar ? (
                       <img
                         alt="Avatar"
@@ -109,7 +109,7 @@ const MobileNav = () => {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-
+ 
               <nav className="mt-5 flex flex-1 flex-col gap-2 overflow-y-auto pr-1">
                 {[...mainItems, ...extraItems].map((item) => {
                   const Icon = item.icon;
@@ -120,7 +120,7 @@ const MobileNav = () => {
                       className={`rounded-2xl border px-4 py-3 transition-all ${
                         active
                           ? "border-btns bg-accent/50 text-white"
-                          : "border-white/5 bg-white/5 text-slate-300 hover:border-white/10 hover:bg-white/10 hover:text-white"
+                          : "border-black/5 bg-black/5 text-slate-300 hover:border-black/10 hover:bg-black/10 hover:text-black"
                       }`}
                       onClick={() => setOpen(false)}
                       to={item.to}
@@ -137,14 +137,14 @@ const MobileNav = () => {
           </>
         ) : null}
       </AnimatePresence>
-
+ 
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-4 md:px-6 md:pb-6">
         <motion.div
-          className="pointer-events-auto relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-r from-white/10 to-white/5 p-2 shadow-2xl shadow-[0_25px_80px_rgba(2,6,23,0.55)] backdrop-blur-2xl"
+          className="pointer-events-auto relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-black/20 bg-gradient-to-r from-black/10 to-black/5 p-2 shadow-2xl shadow-[0_25px_80px_rgba(2,6,23,0.55)] backdrop-blur-xl"
           initial={false}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-pink-500/5" />
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-5 gap-1">
             {mainItems.map((item) => {
               const Icon = item.icon;
               const active = location.pathname === item.to;
@@ -153,60 +153,81 @@ const MobileNav = () => {
               return (
                 <NavLink
                   key={item.to}
-                  className="group relative flex min-h-[68px] flex-col items-center justify-center rounded-[1.35rem] px-2 py-3 text-center text-[11px] font-medium md:text-xs"
+                  className="group relative flex flex-col items-center"
                   to={item.to}
                 >
-                  {active ? (
-                    <motion.div
-                      layoutId="mobile-nav-active-tab"
-                      className="absolute inset-0 rounded-[1.35rem] border border-white/20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm"
-                      transition={{ type: "spring", stiffness: 320, damping: 26 }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 rounded-[1.35rem] bg-white/0 transition-colors duration-200 group-hover:bg-white/5" />
-                  )}
-                  {badgeVisible ? (
-                    <span className="absolute right-2 top-2 z-20 inline-flex min-w-5 items-center justify-center rounded-full bg-cyan-300 px-1.5 text-[10px] font-semibold text-slate-950">
+                  {badgeVisible && (
+                    <span className="absolute -right-0.5 -top-0.5 z-20 inline-flex min-w-4 items-center justify-center rounded-full bg-cyan-300 px-1 text-[9px] font-semibold text-slate-950">
                       {badgeValue}
                     </span>
-                  ) : null}
+                  )}
                   <motion.div
-                    className={`relative z-10 flex flex-col items-center justify-center gap-1 transition-colors ${
-                      active ? "text-white" : "text-slate-400 group-hover:text-white"
+                    className={`relative flex w-full flex-col items-center justify-center gap-1 rounded-3xl px-1 py-2.5 transition-colors ${
+                      active
+                        ? "bg-white/15"
+                        : "bg-transparent"
                     }`}
-                    transition={{ duration: 0.2 }}
-                    whileTap={{ scale: 0.96 }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={{ duration: 0.15 }}
                   >
-                    <Icon className={`h-5 w-5 ${active ? "text-white" : ""}`} />
-                    <span>{item.label}</span>
+                    {active && (
+                      <motion.div
+                        layoutId="mobile-nav-active-tab"
+                        className="absolute inset-0 rounded-3xl bg-white/15"
+                        transition={{ type: "spring", stiffness: 320, damping: 26 }}
+                      />
+                    )}
+                    <Icon
+                      strokeWidth={active ? 2.25 : 1.6}
+                      className={`relative z-10 h-5 w-5 transition-all ${
+                        active ? "text-accent" : "text-slate-400 group-hover:text-slate-200"
+                      }`}
+                    />
+                    <span
+                      className={`relative z-10 text-[10.5px] font-medium leading-none transition-colors ${
+                        active ? "text-accent font-semibold" : "text-slate-400 group-hover:text-slate-200"
+                      }`}
+                    >
+                      {item.label}
+                    </span>
                   </motion.div>
                 </NavLink>
               );
             })}
-
+ 
+            {/* Menu button */}
             <button
-              className="group relative flex min-h-[68px] flex-col items-center justify-center rounded-[1.35rem] px-2 py-3 text-center text-[11px] font-medium md:text-xs"
+              className="group relative flex flex-col items-center"
               onClick={() => setOpen(true)}
               type="button"
             >
-              {open ? (
-                <motion.div
-                  layoutId="mobile-nav-active-tab"
-                  className="absolute inset-0 rounded-[1.35rem] border border-white/20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm"
-                  transition={{ type: "spring", stiffness: 320, damping: 26 }}
-                />
-              ) : (
-                <div className="absolute inset-0 rounded-[1.35rem] bg-white/0 transition-colors duration-200 group-hover:bg-white/5" />
-              )}
               <motion.div
-                className={`relative z-10 flex flex-col items-center justify-center gap-1 transition-colors ${
-                  open ? "text-white" : "text-slate-400 group-hover:text-white"
+                className={`relative flex w-full flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2.5 transition-colors ${
+                  open ? "bg-white/15" : "bg-transparent"
                 }`}
-                transition={{ duration: 0.2 }}
-                whileTap={{ scale: 0.96 }}
+                whileTap={{ scale: 0.94 }}
+                transition={{ duration: 0.15 }}
               >
-                <Menu className={`h-5 w-5 ${open ? "text-white" : ""}`} />
-                <span>Меню</span>
+                {open && (
+                  <motion.div
+                    layoutId="mobile-nav-active-tab"
+                    className="absolute inset-0 rounded-2xl bg-white/15"
+                    transition={{ type: "spring", stiffness: 320, damping: 26 }}
+                  />
+                )}
+                <Menu
+                  strokeWidth={open ? 2.25 : 1.6}
+                  className={`relative z-10 h-5 w-5 transition-all ${
+                    open ? "text-accent" : "text-slate-400 group-hover:text-slate-200"
+                  }`}
+                />
+                <span
+                  className={`relative z-10 text-[10.5px] font-medium leading-none transition-colors ${
+                    open ? "text-accent font-semibold" : "text-slate-400 group-hover:text-slate-200"
+                  }`}
+                >
+                  Меню
+                </span>
               </motion.div>
             </button>
           </div>
@@ -215,5 +236,5 @@ const MobileNav = () => {
     </>
   );
 };
-
+ 
 export default MobileNav;
