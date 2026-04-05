@@ -10,7 +10,7 @@ interface StatCardProps {
 }
 
 const toneMap = {
-  default: "from-cyan-500/15 to-sky-500/5 text-cyan-200",
+  default: "from-btns/15 to-sky-500/5 text-btns",
   success: "from-emerald-500/15 to-emerald-500/5 text-emerald-200",
   warning: "from-amber-500/15 to-amber-500/5 text-amber-200",
   danger: "from-rose-500/15 to-rose-500/5 text-rose-200",

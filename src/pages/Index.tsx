@@ -74,12 +74,12 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="space-y-8">
-        <div className="mb-2 flex items-center gap-4">
-          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/10 bg-black/30">
+        <div className="flex items-center gap-4">
+          <div className="relative size-18 shrink-0 overflow-hidden rounded-full border border-white/10 bg-black/30">
             {user?.avatar ? (
               <img
                 alt="Avatar"
-                className="h-full w-full object-cover"
+                className="h-16 w-16 object-cover"
                 src={user.avatar}
                 style={{
                   transform: `translate(${preferences.avatarX}px, ${preferences.avatarY}px) scale(${preferences.avatarScale})`,
@@ -92,11 +92,11 @@ const Dashboard = () => {
               </div>
             )}
           </div>
+          <div className="min-w-0">
+            <h1 className="text-3xl font-bold tracking-tight text-white">{`Вітаю, ${user?.full_name}`}</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-300">Огляд ключових показників вашого портфелю.</p>
+          </div>
         </div>
-        <PageHeader
-          description="Огляд ключових показників вашого портфелю."
-          title={`Вітаю, ${user?.full_name}`}
-        />
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <StatCard icon={Wallet} label="Оплачено" tone="success" value={money(monthlyIncome)} />
@@ -125,7 +125,7 @@ const Dashboard = () => {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-white">Останні оплати</h2>
-              <span className="text-sm text-slate-400">Записів: {payments.length}</span>
+              <span className="text-sm text-slate-400">{payments.length}</span>
             </div>
             <div className="space-y-3">
               {payments.slice(0, 5).map((payment) => (

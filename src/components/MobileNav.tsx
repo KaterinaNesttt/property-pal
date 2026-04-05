@@ -98,10 +98,9 @@ const MobileNav = () => {
                     )}
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Jopka</p>
                     <h2 className="mt-2 text-xl font-semibold text-white">{user?.full_name}</h2>
                     <p className="mt-1 text-sm text-slate-400">
-                      {user?.role === "superadmin" ? "Superadmin" : user?.role === "owner" ? "Owner" : "Tenant"}
+                      {user?.role === "superadmin" ? "Суперадмін" : user?.role === "owner" ? "Власник" : "Орендар"}
                     </p>
                   </div>
                 </div>
@@ -157,14 +156,14 @@ const MobileNav = () => {
                   to={item.to}
                 >
                   {badgeVisible && (
-                    <span className="absolute -right-0.5 -top-0.5 z-20 inline-flex min-w-4 items-center justify-center rounded-full bg-cyan-300 px-1 text-[9px] font-semibold text-slate-950">
+                    <span className="absolute -right-0.5 -top-0.5 z-20 inline-flex min-w-4 items-center justify-center rounded-full bg-btns px-1 text-[9px] font-semibold text-slate-950">
                       {badgeValue}
                     </span>
                   )}
                   <motion.div
                     className={`relative flex w-full flex-col items-center justify-center gap-1 rounded-3xl px-1 py-2.5 transition-colors ${
                       active
-                        ? "bg-white/15"
+                        ? "bg-background/80 backdrop-blur-sm"
                         : "bg-transparent"
                     }`}
                     whileTap={{ scale: 0.94 }}
@@ -173,14 +172,14 @@ const MobileNav = () => {
                     {active && (
                       <motion.div
                         layoutId="mobile-nav-active-tab"
-                        className="absolute inset-0 rounded-3xl bg-white/15"
+                        className="absolute inset-0 rounded-3xl bg-background/80 backdrop-blur-sm"
                         transition={{ type: "spring", stiffness: 320, damping: 26 }}
                       />
                     )}
                     <Icon
-                      strokeWidth={active ? 2.25 : 1.6}
+                      strokeWidth={active ? 4.25 : 1.2}
                       className={`relative z-10 h-5 w-5 transition-all ${
-                        active ? "text-accent" : "text-slate-400 group-hover:text-slate-200"
+                        active ? "text-accent" : "text-white group-hover:text-accent/10"
                       }`}
                     />
                     <span
@@ -203,7 +202,7 @@ const MobileNav = () => {
             >
               <motion.div
                 className={`relative flex w-full flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2.5 transition-colors ${
-                  open ? "bg-white/15" : "bg-transparent"
+                  open ? "bg-black/15" : "bg-transparent"
                 }`}
                 whileTap={{ scale: 0.94 }}
                 transition={{ duration: 0.15 }}

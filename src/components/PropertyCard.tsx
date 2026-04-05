@@ -1,4 +1,4 @@
-import { Building2, Home, Pencil, Trash2, User } from "lucide-react";
+import { Building2, Home, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Property } from "@/lib/types";
 import { money } from "@/lib/format";
@@ -17,14 +17,14 @@ const statusLabel = {
   maintenance: "Обслуговування",
 };
 
-const PropertyCard = ({ property, onEdit, onDelete, showActions = true }: PropertyCardProps) => {
+const PropertyCard = ({ property }: PropertyCardProps) => {
   return (
-    <div className="glass-card flex h-full flex-col justify-between gap-5">
+    <Link className="glass-card flex h-full cursor-pointer flex-col justify-between gap-5 transition hover:-translate-y-0.5 hover:bg-white/5" to={`/properties/${property.id}`}>
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="glass-icon h-11 w-11">
-              <Building2 className="h-5 w-5 text-cyan-200" />
+              <Building2 className="h-5 w-5 text-btns" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white">{property.name}</h3>
@@ -51,22 +51,8 @@ const PropertyCard = ({ property, onEdit, onDelete, showActions = true }: Proper
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Місячна оренда</p>
           <p className="mt-2 text-xl font-semibold text-white">{money(property.rent_amount)}</p>
         </div>
-        {showActions ? (
-          <div className="flex gap-2">
-            <Link className="glass-button" to={`/properties/${property.id}`}>
-              Деталі
-            </Link>
-            <button className="glass-button flex-1" onClick={() => onEdit(property)} type="button">
-              <Pencil className="mr-2 inline h-4 w-4" />
-              Редагувати
-            </button>
-            <button className="glass-button text-rose-200" onClick={() => onDelete(property)} type="button">
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ) : null}
       </div>
-    </div>
+    </Link>
   );
 };
 

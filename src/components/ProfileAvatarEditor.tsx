@@ -42,12 +42,12 @@ const ProfileAvatarEditor = ({ avatar, scale, x, y, onSave }: ProfileAvatarEdito
 
     const reader = new FileReader();
     reader.onload = () => {
-      setDraft({
+      setDraft((current) => ({
         avatar: typeof reader.result === "string" ? reader.result : null,
-        scale: 1,
-        x: 0,
-        y: 0,
-      });
+        scale: current.scale || 1,
+        x: current.x || 0,
+        y: current.y || 0,
+      }));
       setHasChanges(true);
     };
     reader.readAsDataURL(file);
@@ -196,7 +196,7 @@ const ProfileAvatarEditor = ({ avatar, scale, x, y, onSave }: ProfileAvatarEdito
       {hasChanges ? (
         <div className="flex gap-2">
           <button
-            className="glass-button flex-1 bg-cyan-400/15 text-white"
+            className="glass-button flex-1 bg-btns/15 text-white"
             onClick={() => {
               onSave({
                 avatar: draft.avatar,

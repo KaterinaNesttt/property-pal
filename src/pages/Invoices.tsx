@@ -64,7 +64,7 @@ const Invoices = () => {
             <article key={invoice.id} className="glass-card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-start gap-4">
                 <div className="glass-icon h-11 w-11">
-                  <FileText className="h-5 w-5 text-cyan-200" />
+                  <FileText className="h-5 w-5 text-btns" />
                 </div>
                 <div>
                   <div className="flex flex-wrap items-center gap-2">

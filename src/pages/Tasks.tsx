@@ -6,6 +6,8 @@ import AppLayout from "@/components/AppLayout";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
+import IosDrumPicker from "@/components/ui/ios-date-picker";
+import IosDateTimePicker from "@/components/ui/ios-date-time-picker";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
@@ -184,7 +186,7 @@ const Tasks = () => {
               </button>
             </div>
             <form className="mt-5 grid gap-4" onSubmit={submit}>
-              <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
+              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
                 <option value="">Оберіть об'єкт</option>
                 {(propertiesQuery.data ?? []).map((property) => (
                   <option key={property.id} value={property.id}>
@@ -192,7 +194,7 @@ const Tasks = () => {
                   </option>
                 ))}
               </select>
-              <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, tenant_id: event.target.value }))} value={draft.tenant_id}>
+              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, tenant_id: event.target.value }))} value={draft.tenant_id}>
                 <option value="">Без орендаря</option>
                 {(tenantsQuery.data ?? [])
                   .filter((tenant) => !draft.property_id || tenant.property_id === draft.property_id)
@@ -205,12 +207,12 @@ const Tasks = () => {
               <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="Назва" required value={draft.title} />
               <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Опис" value={draft.description} />
               <div className="grid gap-4 md:grid-cols-2">
-                <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, priority: event.target.value as TaskPriority }))} value={draft.priority}>
+                <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, priority: event.target.value as TaskPriority }))} value={draft.priority}>
                   <option value="low">low</option>
                   <option value="medium">medium</option>
                   <option value="high">high</option>
                 </select>
-                <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as TaskStatus }))} value={draft.status}>
+                <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as TaskStatus }))} value={draft.status}>
                   <option value="open">open</option>
                   <option value="in_progress">in_progress</option>
                   <option value="done">done</option>
@@ -218,11 +220,11 @@ const Tasks = () => {
                 </select>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, due_date: event.target.value }))} required type="date" value={draft.due_date} />
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, reminder_at: event.target.value }))} type="datetime-local" value={draft.reminder_at} />
+                <IosDrumPicker onChange={(value) => setDraft((current) => ({ ...current, due_date: value }))} placeholder="Оберіть дату" value={draft.due_date} />
+                <IosDateTimePicker onChange={(value) => setDraft((current) => ({ ...current, reminder_at: value }))} placeholder="Оберіть дату і час" value={draft.reminder_at} />
               </div>
               <div className="flex gap-3">
-                <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
+                <button className="glass-button flex-1 justify-center bg-btns/15 text-white" disabled={mutation.isPending} type="submit">
                   {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">

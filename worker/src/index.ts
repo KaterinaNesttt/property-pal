@@ -972,7 +972,7 @@ async function handleTenants(request: Request, env: Env, pathname: string) {
       null,
       property.id,
       asString(body.full_name, "full_name"),
-      asString(body.email, "email").toLowerCase(),
+      asOptionalString(body.email) ?? "",
       asString(body.phone, "phone"),
       asString(body.lease_start, "lease_start"),
       asString(body.lease_end, "lease_end"),
@@ -1013,7 +1013,7 @@ async function handleTenants(request: Request, env: Env, pathname: string) {
     ).bind(
       nextProperty.id,
       asString(body.full_name, "full_name"),
-      asString(body.email, "email").toLowerCase(),
+      asOptionalString(body.email) ?? "",
       asString(body.phone, "phone"),
       asString(body.lease_start, "lease_start"),
       asString(body.lease_end, "lease_end"),

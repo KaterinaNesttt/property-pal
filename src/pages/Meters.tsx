@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import AppLayout from "@/components/AppLayout";
 import PageHeader from "@/components/PageHeader";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
+import IosDrumPicker from "@/components/ui/ios-date-picker";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { formatDate, money } from "@/lib/format";
@@ -97,7 +98,7 @@ const Meters = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="glass-icon h-11 w-11">
-                        <Icon className="h-5 w-5 text-cyan-200" />
+                        <Icon className="h-5 w-5 text-btns" />
                       </div>
                       <div>
                         <h2 className="text-lg font-semibold text-white">{meter.property_name ?? "Без об'єкта"}</h2>
@@ -159,7 +160,7 @@ const Meters = () => {
           <section className="glass-card">
             <h2 className="text-xl font-semibold text-white">{draft.id ? "Редагування лічильника" : "Новий показник"}</h2>
             <form className="mt-5 grid gap-4" onSubmit={submit}>
-              <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
+              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
                 <option value="">Оберіть об'єкт</option>
                 {(propertiesQuery.data ?? []).map((property) => (
                   <option key={property.id} value={property.id}>
@@ -168,7 +169,7 @@ const Meters = () => {
                 ))}
               </select>
               <div className="grid gap-4 md:grid-cols-2">
-                <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, meter_type: event.target.value as MeterType }))} value={draft.meter_type}>
+                <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, meter_type: event.target.value as MeterType }))} value={draft.meter_type}>
                   <option value="water">Вода</option>
                   <option value="gas">Газ</option>
                   <option value="electricity">Електрика</option>
@@ -181,14 +182,14 @@ const Meters = () => {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <input className="glass-input" min={0} onChange={(event) => setDraft((current) => ({ ...current, tariff: Number(event.target.value) }))} required step="0.01" type="number" value={draft.tariff} />
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, reading_date: event.target.value }))} required type="date" value={draft.reading_date} />
+                <IosDrumPicker onChange={(value) => setDraft((current) => ({ ...current, reading_date: value }))} placeholder="Оберіть дату" value={draft.reading_date} />
               </div>
               <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} placeholder="Нотатка" value={draft.note} />
               <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
                 Споживання: {computed.diff} {draft.unit}. Нарахування: {money(computed.total)}
               </div>
               <div className="flex gap-3">
-                <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
+                <button className="glass-button flex-1 justify-center bg-btns/15 text-white" disabled={mutation.isPending} type="submit">
                   {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">

@@ -31,7 +31,7 @@ const PaymentRow = ({ payment, onEdit, onDelete, showActions = true }: PaymentRo
     <div className="glass-card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex min-w-0 items-start gap-4">
         <div className="glass-icon h-11 w-11 shrink-0">
-          <Icon className="h-5 w-5 text-cyan-200" />
+          <Icon className="h-5 w-5 text-btns" />
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">

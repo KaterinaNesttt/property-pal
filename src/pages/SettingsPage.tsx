@@ -12,6 +12,7 @@ const SettingsPage = () => {
   const [fullName, setFullName] = useState(user?.full_name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [saving, setSaving] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   useEffect(() => {
     setFullName(user?.full_name ?? "");
@@ -66,7 +67,9 @@ const SettingsPage = () => {
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Профіль</p>
               <h2 className="mt-3 text-2xl font-semibold text-white">{user?.full_name}</h2>
               <p className="mt-2 text-sm text-slate-300">{user?.email}</p>
-              <p className="mt-1 text-sm text-slate-400">Роль: {user?.role}</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Роль: {user?.role === "superadmin" ? "Суперадмін" : user?.role === "owner" ? "Власник" : "Орендар"}
+              </p>
             </div>
 
             <ProfileAvatarEditor
@@ -151,7 +154,7 @@ const SettingsPage = () => {
               <Switch checked={preferences.themeMode === "purple"} onCheckedChange={togglePurple} />
             </label>
 
-            <button className="glass-button w-full justify-center bg-cyan-400/15 text-white" disabled={saving} onClick={saveAll} type="button">
+            <button className="glass-button w-full justify-center bg-btns/15 text-white" disabled={saving} onClick={saveAll} type="button">
               {saving ? "Збереження..." : "Зберегти профіль"}
             </button>
 
@@ -166,17 +169,18 @@ const SettingsPage = () => {
               Вийти
             </button>
 
-            <button
-              className="glass-button w-full justify-center"
-              onClick={async () => {
-                if ("Notification" in window) {
-                  await Notification.requestPermission();
-                }
-              }}
-              type="button"
-            >
-              Увімкнути локальні нагадування
-            </button>
+            <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
+              Локальні нагадування
+              <Switch
+                checked={notificationsEnabled}
+                onCheckedChange={async (checked) => {
+                  setNotificationsEnabled(checked);
+                  if (checked && "Notification" in window) {
+                    await Notification.requestPermission();
+                  }
+                }}
+              />
+            </label>
           </div>
         </section>
       </div>

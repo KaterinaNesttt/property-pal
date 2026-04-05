@@ -7,6 +7,8 @@ import PageHeader from "@/components/PageHeader";
 import PaymentRow from "@/components/PaymentRow";
 import StatCard from "@/components/StatCard";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
+import IosDrumPicker from "@/components/ui/ios-date-picker";
+import IosMonthPicker from "@/components/ui/ios-month-picker";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { money } from "@/lib/format";
@@ -93,7 +95,7 @@ const Payments = () => {
       <div className="space-y-8">
         <PageHeader
           actions={
-            <button className="glass-button bg-cyan-400/15 text-white" onClick={() => setDraft(initialForm)} type="button">
+            <button className="glass-button bg-btns/15 text-white" onClick={() => setDraft(initialForm)} type="button">
               <Plus className="mr-2 inline h-4 w-4" />
               Новий платіж
             </button>
@@ -122,7 +124,7 @@ const Payments = () => {
               ].map((item) => (
                 <button
                   key={item.key}
-                  className={`glass-button ${statusFilter === item.key ? "bg-cyan-400/15 text-white" : ""}`}
+                  className={`glass-button ${statusFilter === item.key ? "bg-btns/15 text-white" : ""}`}
                   onClick={() => setStatusFilter(item.key as "all" | PaymentStatus)}
                   type="button"
                 >
@@ -160,7 +162,7 @@ const Payments = () => {
           <section className="glass-card">
             <h2 className="text-xl font-semibold text-white">{draft.id ? "Редагування платежу" : "Новий платіж"}</h2>
             <form className="mt-5 grid gap-4" onSubmit={submit}>
-              <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
+              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
                 <option value="">Оберіть об'єкт</option>
                 {(propertiesQuery.data ?? []).map((property) => (
                   <option key={property.id} value={property.id}>
@@ -168,7 +170,7 @@ const Payments = () => {
                   </option>
                 ))}
               </select>
-              <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, tenant_id: event.target.value }))} value={draft.tenant_id}>
+              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, tenant_id: event.target.value }))} value={draft.tenant_id}>
                 <option value="">Без орендаря</option>
                 {(tenantsQuery.data ?? [])
                   .filter((tenant) => !draft.property_id || tenant.property_id === draft.property_id)
@@ -179,28 +181,28 @@ const Payments = () => {
                   ))}
               </select>
               <div className="grid gap-4 md:grid-cols-2">
-                <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, payment_type: event.target.value as PaymentType }))} value={draft.payment_type}>
+                <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, payment_type: event.target.value as PaymentType }))} value={draft.payment_type}>
                   <option value="rent">Оренда</option>
                   <option value="utilities">Комунальні</option>
                   <option value="internet">Інтернет</option>
                   <option value="other">Інше</option>
                 </select>
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, period_month: event.target.value }))} required type="month" value={draft.period_month} />
+                <IosMonthPicker onChange={(value) => setDraft((current) => ({ ...current, period_month: value }))} value={draft.period_month} />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <input className="glass-input" min={0} onChange={(event) => setDraft((current) => ({ ...current, base_amount: Number(event.target.value) }))} required type="number" value={draft.base_amount} />
                 <input className="glass-input" min={0} onChange={(event) => setDraft((current) => ({ ...current, utilities_amount: Number(event.target.value) }))} required type="number" value={draft.utilities_amount} />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, due_date: event.target.value }))} required type="date" value={draft.due_date} />
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, paid_at: event.target.value }))} type="date" value={draft.paid_at} />
+                <IosDrumPicker onChange={(value) => setDraft((current) => ({ ...current, due_date: value }))} placeholder="Оберіть дату" value={draft.due_date} />
+                <IosDrumPicker onChange={(value) => setDraft((current) => ({ ...current, paid_at: value }))} placeholder="Дата оплати" value={draft.paid_at} />
               </div>
               <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} placeholder="Нотатка" value={draft.note} />
               <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
                 Підсумок: {money(Number(draft.base_amount) + Number(draft.utilities_amount))}
               </div>
               <div className="flex gap-3">
-                <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
+                <button className="glass-button flex-1 justify-center bg-btns/15 text-white" disabled={mutation.isPending} type="submit">
                   {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">
