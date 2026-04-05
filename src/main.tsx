@@ -2,22 +2,30 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-if (import.meta.env.DEV && "serviceWorker" in navigator) {
+function clearLegacyPwaState() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
   window.addEventListener("load", () => {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       registrations.forEach((registration) => {
         void registration.unregister();
       });
     });
+
+    if ("caches" in window) {
+      void caches.keys().then((keys) => {
+        keys.forEach((key) => {
+          void caches.delete(key);
+        });
+      });
+    }
   });
 }
 
-if (import.meta.env.PROD && "serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // Registration failures are non-fatal for the app runtime.
-    });
-  });
+if (import.meta.env.DEV || import.meta.env.PROD) {
+  clearLegacyPwaState();
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
