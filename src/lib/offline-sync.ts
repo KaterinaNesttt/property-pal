@@ -17,6 +17,9 @@ export interface OfflineMutation {
   body?: unknown;
   token: string;
   enqueuedAt: string;
+  attempts?: number;
+  lastError?: string;
+  lastErrorAt?: string;
 }
 
 export interface OfflineQueuedResult {
@@ -299,9 +302,14 @@ export async function flushOfflineMutations(apiBase: string) {
 
     let synced = 0;
     let failed = 0;
+    const processedIds = new Set<string>();
 
     while (queue.length) {
       const current = queue[0];
+      if (processedIds.has(current.id)) {
+        break;
+      }
+      processedIds.add(current.id);
 
       try {
         const response = await fetch(`${apiBase}${current.path}`, {
@@ -312,11 +320,17 @@ export async function flushOfflineMutations(apiBase: string) {
 
         if (!response.ok) {
           failed += 1;
-          queue = queue.slice(1);
+          const failedItem: OfflineMutation = {
+            ...current,
+            attempts: (current.attempts ?? 0) + 1,
+            lastError: `HTTP ${response.status}`,
+            lastErrorAt: new Date().toISOString(),
+          };
+          queue = [...queue.slice(1), failedItem];
           writeQueue(queue);
           emit({
             type: "flush-error",
-            item: current,
+            item: failedItem,
             message: `HTTP ${response.status}`,
           });
           continue;

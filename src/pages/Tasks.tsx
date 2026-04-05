@@ -82,9 +82,9 @@ const Tasks = () => {
   return (
     <AppLayout>
       <div className="space-y-8">
-        <PageHeader description="Локальні нагадування спрацьовують через браузерні Notification API." title="Задачі" />
+        <PageHeader description="Локальні нагадування спрацьовують через браузерний Notification API." title="Задачі" />
 
-        {tasksQuery.isLoading || propertiesQuery.isLoading || tenantsQuery.isLoading ? <LoadingBlock label="Завантаження задач…" /> : null}
+        {tasksQuery.isLoading || propertiesQuery.isLoading || tenantsQuery.isLoading ? <LoadingBlock label="Завантаження задач..." /> : null}
         {tasksQuery.error || propertiesQuery.error || tenantsQuery.error ? <ErrorBlock label="Не вдалося отримати задачі або зв'язані сутності." /> : null}
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -223,7 +223,7 @@ const Tasks = () => {
               </div>
               <div className="flex gap-3">
                 <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
-                  {mutation.isPending ? "Збереження…" : draft.id ? "Оновити" : "Створити"}
+                  {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">
                   Скинути

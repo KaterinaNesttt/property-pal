@@ -83,7 +83,7 @@ const Meters = () => {
       <div className="space-y-8">
         <PageHeader description="Внесення показників і автоматичний розрахунок комунальної складової." title="Лічильники" />
 
-        {metersQuery.isLoading || propertiesQuery.isLoading ? <LoadingBlock label="Завантаження лічильників…" /> : null}
+        {metersQuery.isLoading || propertiesQuery.isLoading ? <LoadingBlock label="Завантаження лічильників..." /> : null}
         {metersQuery.error || propertiesQuery.error ? <ErrorBlock label="Не вдалося отримати лічильники або об'єкти." /> : null}
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -189,7 +189,7 @@ const Meters = () => {
               </div>
               <div className="flex gap-3">
                 <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
-                  {mutation.isPending ? "Збереження…" : draft.id ? "Оновити" : "Створити"}
+                  {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">
                   Скинути

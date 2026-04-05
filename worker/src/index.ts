@@ -37,6 +37,8 @@ const json = (body: unknown, init: ResponseInit = {}) =>
 
 const error = (status: number, message: string, details?: string) => json({ error: message, details }, { status });
 const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+const PBKDF2_ITERATIONS = 310000;
 
 const base64UrlEncode = (value: ArrayBuffer | Uint8Array | string) => {
   const bytes =
@@ -59,11 +61,54 @@ const base64UrlDecode = (value: string) => {
   return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 };
 
-const getJwtSecret = (env: Env) => env.JWT_SECRET || "property-pal-dev-secret";
+function getJwtSecret(env: Env) {
+  const secret = env.JWT_SECRET?.trim();
+  if (!secret) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+  return secret;
+}
 
-async function hashPassword(password: string) {
+async function legacyHashPassword(password: string) {
   const digest = await crypto.subtle.digest("SHA-256", encoder.encode(password));
   return base64UrlEncode(digest);
+}
+
+async function derivePasswordHash(password: string, salt: Uint8Array, iterations: number) {
+  const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]);
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations,
+      hash: "SHA-256",
+    },
+    key,
+    256,
+  );
+  return base64UrlEncode(derivedBits);
+}
+
+async function hashPassword(password: string) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const digest = await derivePasswordHash(password, salt, PBKDF2_ITERATIONS);
+  return `pbkdf2$${PBKDF2_ITERATIONS}$${base64UrlEncode(salt)}$${digest}`;
+}
+
+async function verifyPassword(password: string, storedHash: string) {
+  if (storedHash.startsWith("pbkdf2$")) {
+    const [, iterationsRaw, saltRaw, expectedHash] = storedHash.split("$");
+    const iterations = Number(iterationsRaw);
+    if (!iterations || !saltRaw || !expectedHash) {
+      return { valid: false, needsUpgrade: false };
+    }
+
+    const actualHash = await derivePasswordHash(password, base64UrlDecode(saltRaw), iterations);
+    return { valid: actualHash === expectedHash, needsUpgrade: false };
+  }
+
+  const legacyHash = await legacyHashPassword(password);
+  return { valid: legacyHash === storedHash, needsUpgrade: legacyHash === storedHash };
 }
 
 async function signJwt(env: Env, payload: Record<string, unknown>) {
@@ -165,6 +210,18 @@ async function getProperty(env: Env, propertyId: string) {
 
 async function getUserRecord(env: Env, userId: string) {
   return await env.DB.prepare("SELECT * FROM users WHERE id = ? LIMIT 1").bind(userId).first<Record<string, string>>();
+}
+
+async function getPaymentRecord(env: Env, paymentId: string) {
+  return await env.DB.prepare("SELECT id, property_id FROM payments WHERE id = ? LIMIT 1").bind(paymentId).first<Record<string, string>>();
+}
+
+async function getMeterRecord(env: Env, meterId: string) {
+  return await env.DB.prepare("SELECT id, property_id FROM meters WHERE id = ? LIMIT 1").bind(meterId).first<Record<string, string>>();
+}
+
+async function getTaskRecord(env: Env, taskId: string) {
+  return await env.DB.prepare("SELECT id, property_id FROM tasks WHERE id = ? LIMIT 1").bind(taskId).first<Record<string, string>>();
 }
 
 function normalizePreferences(value: string | null | undefined) {
@@ -382,6 +439,13 @@ async function canAccessProperty(env: Env, user: SessionUser, propertyId: string
   return tenant?.property_id === propertyId;
 }
 
+async function ensureRecordPropertyAccess(env: Env, user: SessionUser, propertyId: string) {
+  if (!(await canAccessProperty(env, user, propertyId))) {
+    return error(403, "Forbidden");
+  }
+  return null;
+}
+
 async function authRoutes(request: Request, env: Env, pathname: string) {
   if (pathname === "/api/auth/register" && request.method === "POST") {
     const body = await parseBody<{ email: string; password: string; full_name: string }>(request);
@@ -429,8 +493,19 @@ async function authRoutes(request: Request, env: Env, pathname: string) {
   if (pathname === "/api/auth/login" && request.method === "POST") {
     const body = await parseBody<{ email: string; password: string }>(request);
     const user = await env.DB.prepare("SELECT * FROM users WHERE email = ? LIMIT 1").bind(body.email.toLowerCase()).first<Record<string, string>>();
-    if (!user || user.password_hash !== (await hashPassword(body.password))) {
+    if (!user) {
       return error(401, "Invalid credentials");
+    }
+
+    const passwordCheck = await verifyPassword(body.password, user.password_hash);
+    if (!passwordCheck.valid) {
+      return error(401, "Invalid credentials");
+    }
+
+    if (passwordCheck.needsUpgrade) {
+      const upgradedHash = await hashPassword(body.password);
+      await env.DB.prepare("UPDATE users SET password_hash = ? WHERE id = ?").bind(upgradedHash, user.id).run();
+      user.password_hash = upgradedHash;
     }
 
     const payload = { id: user.id, email: user.email, full_name: user.full_name, role: user.role as UserRole };
@@ -596,6 +671,12 @@ export default {
             return error(403, "Forbidden");
           }
           const body = await parseBody<Record<string, string | number | null>>(request);
+          if (body.property_id && String(body.property_id) !== current.property_id) {
+            const accessError = await ensureRecordPropertyAccess(env, user, String(body.property_id));
+            if (accessError) {
+              return accessError;
+            }
+          }
           await env.DB.prepare(
             "UPDATE tenants SET property_id = ?, full_name = ?, email = ?, phone = ?, lease_start = ?, lease_end = ?, monthly_rent = ?, notes = ?, updated_at = ? WHERE id = ?",
           )
@@ -622,8 +703,19 @@ export default {
 
         if (request.method === "POST" || request.method === "PUT") {
           const body = await parseBody<Record<string, string | number | null>>(request);
-          if (!(await canAccessProperty(env, user, String(body.property_id)))) {
-            return error(403, "Forbidden");
+          if (recordId) {
+            const current = await getPaymentRecord(env, recordId);
+            if (!current) {
+              return error(404, "Payment not found");
+            }
+            const currentAccessError = await ensureRecordPropertyAccess(env, user, current.property_id);
+            if (currentAccessError) {
+              return currentAccessError;
+            }
+          }
+          const targetAccessError = await ensureRecordPropertyAccess(env, user, String(body.property_id));
+          if (targetAccessError) {
+            return targetAccessError;
           }
           const status = paymentStatus(String(body.due_date), (body.paid_at as string | null) || null);
           const total = Number(body.base_amount || 0) + Number(body.utilities_amount || 0);
@@ -641,6 +733,14 @@ export default {
         }
 
         if (recordId && request.method === "DELETE") {
+          const current = await getPaymentRecord(env, recordId);
+          if (!current) {
+            return error(404, "Payment not found");
+          }
+          const accessError = await ensureRecordPropertyAccess(env, user, current.property_id);
+          if (accessError) {
+            return accessError;
+          }
           await env.DB.prepare("DELETE FROM payments WHERE id = ?").bind(recordId).run();
           return new Response(null, { status: 204, headers: corsHeaders(request, env) });
         }
@@ -654,8 +754,19 @@ export default {
 
         if (request.method === "POST" || request.method === "PUT") {
           const body = await parseBody<Record<string, string | number | null>>(request);
-          if (!(await canAccessProperty(env, user, String(body.property_id)))) {
-            return error(403, "Forbidden");
+          if (recordId) {
+            const current = await getMeterRecord(env, recordId);
+            if (!current) {
+              return error(404, "Meter record not found");
+            }
+            const currentAccessError = await ensureRecordPropertyAccess(env, user, current.property_id);
+            if (currentAccessError) {
+              return currentAccessError;
+            }
+          }
+          const targetAccessError = await ensureRecordPropertyAccess(env, user, String(body.property_id));
+          if (targetAccessError) {
+            return targetAccessError;
           }
           const id = recordId || uuid();
           const sql =
@@ -671,6 +782,14 @@ export default {
         }
 
         if (recordId && request.method === "DELETE") {
+          const current = await getMeterRecord(env, recordId);
+          if (!current) {
+            return error(404, "Meter record not found");
+          }
+          const accessError = await ensureRecordPropertyAccess(env, user, current.property_id);
+          if (accessError) {
+            return accessError;
+          }
           await env.DB.prepare("DELETE FROM meters WHERE id = ?").bind(recordId).run();
           return new Response(null, { status: 204, headers: corsHeaders(request, env) });
         }
@@ -684,8 +803,19 @@ export default {
 
         if (request.method === "POST" || request.method === "PUT") {
           const body = await parseBody<Record<string, string | number | null>>(request);
-          if (!(await canAccessProperty(env, user, String(body.property_id)))) {
-            return error(403, "Forbidden");
+          if (recordId) {
+            const current = await getTaskRecord(env, recordId);
+            if (!current) {
+              return error(404, "Task not found");
+            }
+            const currentAccessError = await ensureRecordPropertyAccess(env, user, current.property_id);
+            if (currentAccessError) {
+              return currentAccessError;
+            }
+          }
+          const targetAccessError = await ensureRecordPropertyAccess(env, user, String(body.property_id));
+          if (targetAccessError) {
+            return targetAccessError;
           }
           const resolvedStatus = taskStatus(String(body.due_date), String(body.status || "open"));
           const id = recordId || uuid();
@@ -703,6 +833,14 @@ export default {
         }
 
         if (recordId && request.method === "DELETE") {
+          const current = await getTaskRecord(env, recordId);
+          if (!current) {
+            return error(404, "Task not found");
+          }
+          const accessError = await ensureRecordPropertyAccess(env, user, current.property_id);
+          if (accessError) {
+            return accessError;
+          }
           await env.DB.prepare("DELETE FROM tasks WHERE id = ?").bind(recordId).run();
           return new Response(null, { status: 204, headers: corsHeaders(request, env) });
         }

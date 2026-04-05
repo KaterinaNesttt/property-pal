@@ -93,7 +93,7 @@ const Payments = () => {
           title="Оплати"
         />
 
-        {paymentsQuery.isLoading || propertiesQuery.isLoading || tenantsQuery.isLoading ? <LoadingBlock label="Завантаження оплат…" /> : null}
+        {paymentsQuery.isLoading || propertiesQuery.isLoading || tenantsQuery.isLoading ? <LoadingBlock label="Завантаження оплат..." /> : null}
         {paymentsQuery.error || propertiesQuery.error || tenantsQuery.error ? <ErrorBlock label="Не вдалося отримати платежі або зв'язані сутності." /> : null}
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -192,7 +192,7 @@ const Payments = () => {
               </div>
               <div className="flex gap-3">
                 <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
-                  {mutation.isPending ? "Збереження…" : draft.id ? "Оновити" : "Створити"}
+                  {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">
                   Скинути

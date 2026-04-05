@@ -147,7 +147,7 @@ const SettingsPage = () => {
               onClick={togglePurple}
               type="button"
             >
-              Більше фіолетового Богу фіолетового!
+              Більше фіолетового
             </button>
 
             <button className="glass-button w-full justify-center bg-cyan-400/15 text-white" disabled={saving} onClick={saveAll} type="button">

@@ -12,6 +12,42 @@ import { useAuth } from "@/lib/auth";
 import { formatDate, money } from "@/lib/format";
 import { Property, Tenant } from "@/lib/types";
 
+const copy = {
+  createTaskTitlePrefix: "\u041e\u043f\u043b\u0430\u0442\u0430 \u043e\u0440\u0435\u043d\u0434\u0438: ",
+  createTaskDescription:
+    "\u0410\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u043d\u043e \u0441\u0442\u0432\u043e\u0440\u0435\u043d\u0435 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f \u043f\u0456\u0441\u043b\u044f \u0434\u043e\u0434\u0430\u0432\u0430\u043d\u043d\u044f \u043e\u0440\u0435\u043d\u0434\u0430\u0440\u044f.",
+  saved: "\u041e\u0440\u0435\u043d\u0434\u0430\u0440\u044f \u043e\u043d\u043e\u0432\u043b\u0435\u043d\u043e",
+  created: "\u041e\u0440\u0435\u043d\u0434\u0430\u0440\u044f \u0441\u0442\u0432\u043e\u0440\u0435\u043d\u043e",
+  deleted: "\u041e\u0440\u0435\u043d\u0434\u0430\u0440\u044f \u0432\u0438\u0434\u0430\u043b\u0435\u043d\u043e",
+  newTenant: "\u041d\u043e\u0432\u0438\u0439 \u043e\u0440\u0435\u043d\u0434\u0430\u0440",
+  description:
+    "\u041e\u0440\u0435\u043d\u0434\u0430\u0440\u0456 \u043f\u0440\u0438\u0432'\u044f\u0437\u0430\u043d\u0456 \u0434\u043e \u043e\u0431'\u0454\u043a\u0442\u0456\u0432. \u041f\u0456\u0441\u043b\u044f \u0441\u0442\u0432\u043e\u0440\u0435\u043d\u043d\u044f \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u043d\u043e \u0434\u043e\u0434\u0430\u0454\u0442\u044c\u0441\u044f \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f \u043f\u0440\u043e \u043e\u043f\u043b\u0430\u0442\u0443 \u0447\u0435\u0440\u0435\u0437 \u043c\u0456\u0441\u044f\u0446\u044c.",
+  title: "\u041e\u0440\u0435\u043d\u0434\u0430\u0440\u0456",
+  loading: "\u0417\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u043d\u044f \u043e\u0440\u0435\u043d\u0434\u0430\u0440\u0456\u0432...",
+  error: "\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438 \u043e\u0440\u0435\u043d\u0434\u0430\u0440\u0456\u0432 \u0430\u0431\u043e \u0441\u043f\u0438\u0441\u043e\u043a \u043e\u0431'\u0454\u043a\u0442\u0456\u0432.",
+  noProperty: "\u0411\u0435\u0437 \u043e\u0431'\u0454\u043a\u0442\u0430",
+  active: "\u0410\u043a\u0442\u0438\u0432\u043d\u0438\u0439",
+  inactive: "\u041d\u0435\u0430\u043a\u0442\u0438\u0432\u043d\u0438\u0439",
+  moveIn: "\u0414\u0430\u0442\u0430 \u0437\u0430\u0457\u0437\u0434\u0443: ",
+  monthlyRent: "\u041c\u0456\u0441\u044f\u0447\u043d\u0430 \u043e\u0440\u0435\u043d\u0434\u0430: ",
+  edit: "\u0420\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u0442\u0438",
+  empty: "\u041e\u0440\u0435\u043d\u0434\u0430\u0440\u0456\u0432 \u0449\u0435 \u043d\u0435\u043c\u0430\u0454.",
+  editTitle: "\u0420\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u043d\u043d\u044f \u043e\u0440\u0435\u043d\u0434\u0430\u0440\u044f",
+  createTitle: "\u041d\u043e\u0432\u0438\u0439 \u043e\u0440\u0435\u043d\u0434\u0430\u0440",
+  selectProperty: "\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u043e\u0431'\u0454\u043a\u0442",
+  fullName: "\u041f\u0406\u0411",
+  phone: "\u0422\u0435\u043b\u0435\u0444\u043e\u043d",
+  moveInPlaceholder: "\u0414\u0430\u0442\u0430 \u0437\u0430\u0457\u0437\u0434\u0443",
+  rentPlaceholder: "\u0421\u0443\u043c\u0430 \u043e\u0440\u0435\u043d\u0434\u043d\u043e\u0457 \u043f\u043b\u0430\u0442\u0438",
+  notes: "\u041d\u043e\u0442\u0430\u0442\u043a\u0438",
+  autoReminder:
+    "\u041f\u0456\u0441\u043b\u044f \u0441\u0442\u0432\u043e\u0440\u0435\u043d\u043d\u044f \u043e\u0440\u0435\u043d\u0434\u0430\u0440\u044f \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u043d\u043e \u0434\u043e\u0434\u0430\u0454\u0442\u044c\u0441\u044f \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f \u043f\u0440\u043e \u043e\u043f\u043b\u0430\u0442\u0443 \u0440\u0456\u0432\u043d\u043e \u0447\u0435\u0440\u0435\u0437 \u043c\u0456\u0441\u044f\u0446\u044c.",
+  saving: "\u0417\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u043d\u044f...",
+  update: "\u041e\u043d\u043e\u0432\u0438\u0442\u0438",
+  create: "\u0421\u0442\u0432\u043e\u0440\u0438\u0442\u0438",
+  reset: "\u0421\u043a\u0438\u043d\u0443\u0442\u0438",
+};
+
 const today = new Date().toISOString().slice(0, 10);
 
 const initialForm = {
@@ -60,8 +96,8 @@ const Tenants = () => {
           {
             property_id: payload.property_id,
             tenant_id: response.id,
-            title: `Оплата оренди: ${payload.full_name}`,
-            description: "Автоматично створене нагадування після додавання орендаря.",
+            title: `${copy.createTaskTitlePrefix}${payload.full_name}`,
+            description: copy.createTaskDescription,
             priority: "medium",
             status: "open",
             due_date: reminderDate.toISOString().slice(0, 10),
@@ -74,7 +110,7 @@ const Tenants = () => {
       return response;
     },
     onSuccess: (_, payload) => {
-      toast.success(payload.id ? "Орендаря оновлено" : "Орендаря створено");
+      toast.success(payload.id ? copy.saved : copy.created);
       setDraft(initialForm);
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
@@ -86,7 +122,7 @@ const Tenants = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/tenants/${id}`, token),
     onSuccess: () => {
-      toast.success("Орендаря видалено");
+      toast.success(copy.deleted);
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -105,15 +141,15 @@ const Tenants = () => {
           actions={
             <button className="glass-button bg-cyan-400/15 text-white" onClick={() => setDraft(initialForm)} type="button">
               <UserPlus className="mr-2 inline h-4 w-4" />
-              Новий орендар
+              {copy.newTenant}
             </button>
           }
-          description="Орендарі прив'язані до об'єктів. Після створення автоматично додається нагадування про оплату через місяць."
-          title="Орендарі"
+          description={copy.description}
+          title={copy.title}
         />
 
-        {tenantsQuery.isLoading || propertiesQuery.isLoading ? <LoadingBlock label="Завантаження орендарів..." /> : null}
-        {tenantsQuery.error || propertiesQuery.error ? <ErrorBlock label="Не вдалося отримати орендарів або список об'єктів." /> : null}
+        {tenantsQuery.isLoading || propertiesQuery.isLoading ? <LoadingBlock label={copy.loading} /> : null}
+        {tenantsQuery.error || propertiesQuery.error ? <ErrorBlock label={copy.error} /> : null}
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <section className="grid gap-4 md:grid-cols-2">
@@ -122,15 +158,15 @@ const Tenants = () => {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-semibold text-white">{tenant.full_name}</h2>
-                    <p className="mt-1 text-sm text-slate-400">{tenant.property_name ?? "Без об'єкта"}</p>
+                    <p className="mt-1 text-sm text-slate-400">{tenant.property_name ?? copy.noProperty}</p>
                   </div>
-                  <StatusBadge label={tenant.is_active ? "Активний" : "Неактивний"} value={tenant.is_active ? "active" : "inactive"} />
+                  <StatusBadge label={tenant.is_active ? copy.active : copy.inactive} value={tenant.is_active ? "active" : "inactive"} />
                 </div>
                 <div className="space-y-2 text-sm text-slate-300">
                   <p>{tenant.email}</p>
                   <p>{tenant.phone}</p>
-                  <p>Дата заїзду: {formatDate(tenant.lease_start)}</p>
-                  <p>Місячна оренда: {money(tenant.monthly_rent)}</p>
+                  <p>{copy.moveIn}{formatDate(tenant.lease_start)}</p>
+                  <p>{copy.monthlyRent}{money(tenant.monthly_rent)}</p>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -150,7 +186,7 @@ const Tenants = () => {
                     type="button"
                   >
                     <Pencil className="mr-2 inline h-4 w-4" />
-                    Редагувати
+                    {copy.edit}
                   </button>
                   <button className="glass-button text-rose-200" onClick={() => deleteMutation.mutate(tenant.id)} type="button">
                     <Trash2 className="h-4 w-4" />
@@ -158,29 +194,29 @@ const Tenants = () => {
                 </div>
               </article>
             ))}
-            {!tenantsQuery.isLoading && (tenantsQuery.data ?? []).length === 0 ? <EmptyBlock label="Орендарів ще немає." /> : null}
+            {!tenantsQuery.isLoading && (tenantsQuery.data ?? []).length === 0 ? <EmptyBlock label={copy.empty} /> : null}
           </section>
 
           <section className="glass-card">
-            <h2 className="text-xl font-semibold text-white">{draft.id ? "Редагування орендаря" : "Новий орендар"}</h2>
+            <h2 className="text-xl font-semibold text-white">{draft.id ? copy.editTitle : copy.createTitle}</h2>
             <form className="mt-5 grid gap-4" onSubmit={submit}>
               <select className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
-                <option value="">Оберіть об'єкт</option>
+                <option value="">{copy.selectProperty}</option>
                 {(propertiesQuery.data ?? []).map((property) => (
                   <option key={property.id} value={property.id}>
                     {property.name}
                   </option>
                 ))}
               </select>
-              <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, full_name: event.target.value }))} placeholder="ПІБ" required value={draft.full_name} />
+              <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, full_name: event.target.value }))} placeholder={copy.fullName} required value={draft.full_name} />
               <div className="grid gap-4 md:grid-cols-2">
                 <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))} placeholder="Email" required type="email" value={draft.email} />
-                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} placeholder="Телефон" required value={draft.phone} />
+                <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} placeholder={copy.phone} required value={draft.phone} />
               </div>
               <input
                 className="glass-input"
                 onChange={(event) => setDraft((current) => ({ ...current, lease_start: event.target.value }))}
-                placeholder="Дата заїзду"
+                placeholder={copy.moveInPlaceholder}
                 required
                 type="date"
                 value={draft.lease_start}
@@ -189,21 +225,19 @@ const Tenants = () => {
                 className="glass-input"
                 min={0}
                 onChange={(event) => setDraft((current) => ({ ...current, monthly_rent: event.target.value }))}
-                placeholder="Сума орендної плати"
+                placeholder={copy.rentPlaceholder}
                 required
                 type="number"
                 value={draft.monthly_rent}
               />
-              <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Нотатки" value={draft.notes} />
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
-                Після створення орендаря автоматично додається нагадування про оплату рівно через місяць.
-              </div>
+              <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder={copy.notes} value={draft.notes} />
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">{copy.autoReminder}</div>
               <div className="flex gap-3">
                 <button className="glass-button flex-1 justify-center bg-cyan-400/15 text-white" disabled={mutation.isPending} type="submit">
-                  {mutation.isPending ? "Збереження..." : draft.id ? "Оновити" : "Створити"}
+                  {mutation.isPending ? copy.saving : draft.id ? copy.update : copy.create}
                 </button>
                 <button className="glass-button" onClick={() => setDraft(initialForm)} type="button">
-                  Скинути
+                  {copy.reset}
                 </button>
               </div>
             </form>
