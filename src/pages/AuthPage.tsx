@@ -11,7 +11,7 @@ const copy = {
   busy: "Обробка...",
   submitLogin: "Увійти",
   submitRegister: "Створити власника",
-  heading: "Jopka",
+  heading: "Jopka App",
   subheading: "Керуй. Поселяй. Заробляй.",
   cards: [
     "Максимально можлива автоматизація",
