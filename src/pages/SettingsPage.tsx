@@ -1,20 +1,62 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+import { toast } from "sonner";
 import AppLayout from "@/components/AppLayout";
 import PageHeader from "@/components/PageHeader";
 import ProfileAvatarEditor from "@/components/ProfileAvatarEditor";
 import { useAuth } from "@/lib/auth";
 
 const SettingsPage = () => {
-  const { preferences, updateBadgePreferences, updatePreferences, user } = useAuth();
+  const { preferences, saveProfile, setPreferences, updateBadgePreferences, user } = useAuth();
+  const [fullName, setFullName] = useState(user?.full_name ?? "");
+  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setFullName(user?.full_name ?? "");
+    setPhone(user?.phone ?? "");
+  }, [user?.full_name, user?.phone]);
 
   const handleTextChange =
-    (key: "full_name" | "phone") => (event: ChangeEvent<HTMLInputElement>) =>
-      updatePreferences({ [key]: event.target.value } as Pick<typeof preferences, typeof key>);
+    (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) =>
+      setter(event.target.value);
+
+  const saveAll = async () => {
+    setSaving(true);
+    try {
+      await saveProfile({
+        full_name: fullName,
+        phone,
+        avatar: user?.avatar ?? null,
+        preferences,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const togglePurple = async () => {
+    const nextThemeMode = preferences.themeMode === "purple" ? "default" : "purple";
+    const nextPreferences = { ...preferences, themeMode: nextThemeMode };
+    setPreferences({ themeMode: nextThemeMode });
+    try {
+      await saveProfile({
+        full_name: fullName,
+        phone,
+        avatar: user?.avatar ?? null,
+        preferences: nextPreferences,
+      });
+    } catch {
+      toast.error("Не вдалося зберегти тему");
+    }
+  };
 
   return (
     <AppLayout>
       <div className="space-y-8">
-        <PageHeader description="Профіль користувача, аватарка, сповіщення та лічильники в мобільному меню." title="Налаштування" />
+        <PageHeader
+          description="Профіль користувача, аватарка, сповіщення та лічильники в мобільному меню."
+          title="Налаштування"
+        />
 
         <section className="glass-card grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
           <div className="space-y-4">
@@ -26,8 +68,23 @@ const SettingsPage = () => {
             </div>
 
             <ProfileAvatarEditor
-              avatar={preferences.avatar}
-              onChange={updatePreferences}
+              avatar={user?.avatar ?? null}
+              onChange={(patch) => {
+                setPreferences(patch);
+                if ("avatar" in patch) {
+                  void saveProfile({
+                    full_name: fullName,
+                    phone,
+                    avatar: patch.avatar ?? null,
+                    preferences: {
+                      ...preferences,
+                      avatarScale: patch.avatarScale ?? preferences.avatarScale,
+                      avatarX: patch.avatarX ?? preferences.avatarX,
+                      avatarY: patch.avatarY ?? preferences.avatarY,
+                    },
+                  });
+                }
+              }}
               scale={preferences.avatarScale}
               x={preferences.avatarX}
               y={preferences.avatarY}
@@ -37,18 +94,8 @@ const SettingsPage = () => {
           <div className="grid gap-6">
             <div className="grid gap-4">
               <h3 className="text-lg font-semibold text-white">Дані користувача</h3>
-              <input
-                className="glass-input"
-                onChange={handleTextChange("full_name")}
-                placeholder="Ім'я та прізвище"
-                value={preferences.full_name}
-              />
-              <input
-                className="glass-input"
-                onChange={handleTextChange("phone")}
-                placeholder="Номер телефону"
-                value={preferences.phone}
-              />
+              <input className="glass-input" onChange={handleTextChange(setFullName)} placeholder="Ім'я та прізвище" value={fullName} />
+              <input className="glass-input" onChange={handleTextChange(setPhone)} placeholder="Номер телефону" value={phone} />
             </div>
 
             <div className="grid gap-4">
@@ -94,6 +141,18 @@ const SettingsPage = () => {
                 />
               </label>
             </div>
+
+            <button
+              className={`glass-button w-full justify-center ${preferences.themeMode === "purple" ? "bg-fuchsia-500/20 text-white" : ""}`}
+              onClick={togglePurple}
+              type="button"
+            >
+              Більше фіолетового Богу фіолетового!
+            </button>
+
+            <button className="glass-button w-full justify-center bg-cyan-400/15 text-white" disabled={saving} onClick={saveAll} type="button">
+              {saving ? "Збереження..." : "Зберегти профіль"}
+            </button>
 
             <button
               className="glass-button w-full justify-center"

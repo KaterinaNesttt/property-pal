@@ -13,6 +13,19 @@ interface SessionUser {
   role: UserRole;
 }
 
+const defaultPreferences = {
+  themeMode: "default",
+  badgePreferences: {
+    all: true,
+    properties: true,
+    tasks: true,
+    invoices: true,
+  },
+  avatarScale: 1,
+  avatarX: 0,
+  avatarY: 0,
+};
+
 const json = (body: unknown, init: ResponseInit = {}) =>
   new Response(JSON.stringify(body), {
     ...init,
@@ -148,6 +161,43 @@ async function getTenantProfile(env: Env, userId: string) {
 
 async function getProperty(env: Env, propertyId: string) {
   return await env.DB.prepare("SELECT * FROM properties WHERE id = ? LIMIT 1").bind(propertyId).first<Record<string, string>>();
+}
+
+async function getUserRecord(env: Env, userId: string) {
+  return await env.DB.prepare("SELECT * FROM users WHERE id = ? LIMIT 1").bind(userId).first<Record<string, string>>();
+}
+
+function normalizePreferences(value: string | null | undefined) {
+  if (!value) {
+    return defaultPreferences;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Partial<typeof defaultPreferences>;
+    return {
+      ...defaultPreferences,
+      ...parsed,
+      badgePreferences: {
+        ...defaultPreferences.badgePreferences,
+        ...(parsed.badgePreferences ?? {}),
+      },
+    };
+  } catch {
+    return defaultPreferences;
+  }
+}
+
+function sanitizeUser(user: Record<string, string | null>) {
+  return {
+    id: user.id,
+    email: user.email,
+    full_name: user.full_name,
+    phone: user.phone ?? "",
+    avatar: user.avatar ?? null,
+    preferences: normalizePreferences(user.preferences),
+    role: user.role as UserRole,
+    created_at: user.created_at,
+  };
 }
 
 function paymentStatus(dueDate: string, paidAt: string | null) {
@@ -356,16 +406,24 @@ async function authRoutes(request: Request, env: Env, pathname: string) {
       id: uuid(),
       email: body.email.toLowerCase(),
       full_name: body.full_name,
+      phone: "",
+      avatar: null,
+      preferences: JSON.stringify(defaultPreferences),
       password_hash: await hashPassword(body.password),
       role,
     };
 
-    await env.DB.prepare("INSERT INTO users (id, email, full_name, password_hash, role) VALUES (?, ?, ?, ?, ?)")
-      .bind(user.id, user.email, user.full_name, user.password_hash, user.role)
+    await env.DB.prepare("INSERT INTO users (id, email, full_name, phone, avatar, preferences, password_hash, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(user.id, user.email, user.full_name, user.phone, user.avatar, user.preferences, user.password_hash, user.role)
       .run();
 
-    const token = await signJwt(env, user);
-    return json({ token, user });
+    const token = await signJwt(env, {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+    });
+    return json({ token, user: sanitizeUser({ ...user, created_at: nowIso() }) });
   }
 
   if (pathname === "/api/auth/login" && request.method === "POST") {
@@ -377,12 +435,47 @@ async function authRoutes(request: Request, env: Env, pathname: string) {
 
     const payload = { id: user.id, email: user.email, full_name: user.full_name, role: user.role as UserRole };
     const token = await signJwt(env, payload);
-    return json({ token, user: payload });
+    return json({ token, user: sanitizeUser(user) });
   }
 
   if (pathname === "/api/auth/me" && request.method === "GET") {
     const session = await requireUser(request, env);
-    return json({ user: session });
+    const user = await getUserRecord(env, session.id);
+    if (!user) {
+      return error(404, "User not found");
+    }
+    return json({ user: sanitizeUser(user) });
+  }
+
+  if (pathname === "/api/profile" && request.method === "PUT") {
+    const session = await requireUser(request, env);
+    const body = await parseBody<{
+      full_name: string;
+      phone?: string;
+      avatar?: string | null;
+      preferences?: typeof defaultPreferences;
+    }>(request);
+    await env.DB.prepare("UPDATE users SET full_name = ?, phone = ?, avatar = ?, preferences = ? WHERE id = ?")
+      .bind(
+        body.full_name || session.full_name,
+        body.phone ?? "",
+        body.avatar ?? null,
+        JSON.stringify({
+          ...defaultPreferences,
+          ...(body.preferences ?? {}),
+          badgePreferences: {
+            ...defaultPreferences.badgePreferences,
+            ...(body.preferences?.badgePreferences ?? {}),
+          },
+        }),
+        session.id,
+      )
+      .run();
+    const user = await getUserRecord(env, session.id);
+    if (!user) {
+      return error(404, "User not found");
+    }
+    return json({ user: sanitizeUser(user) });
   }
 
   return null;

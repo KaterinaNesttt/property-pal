@@ -86,6 +86,48 @@
 
   }
 
+  :root[data-theme="purple"] {
+    --background: 275 45% 7%;
+    --foreground: 285 35% 96%;
+    --border: 285 60% 40% / 0.28;
+    --input: 282 45% 26% / 0.45;
+    --ring: 287 88% 72%;
+    --primary: 287 88% 48%;
+    --primary-foreground: 285 35% 98%;
+    --secondary: 279 38% 15%;
+    --secondary-foreground: 285 35% 96%;
+    --muted: 279 28% 16%;
+    --muted-foreground: 280 18% 72%;
+    --accent: 293 88% 68%;
+    --accent-foreground: 280 35% 10%;
+    --popover: 275 36% 10%;
+    --popover-foreground: 285 35% 96%;
+    --card: 275 36% 10%;
+    --card-foreground: 285 35% 96%;
+    --btns: 293 100% 35%;
+    --glass-bg: 286 70% 58% / 0.08;
+    --glass-border: 286 70% 70% / 0.18;
+    --glass-highlight: 294 100% 88% / 0.32;
+    --glass-glow: 286 100% 78% / 0.18;
+    --gradient: linear-gradient(
+      45deg,
+      hsl(274 88% 24%) 0%,
+      hsl(281 89% 28%) 22%,
+      hsl(287 91% 34%) 48%,
+      hsl(293 92% 40%) 72%,
+      hsl(301 100% 45%) 100%
+    );
+    --gradient-blue: var(--gradient);
+    --sidebar-background: 275 42% 8%;
+    --sidebar-foreground: 285 35% 96%;
+    --sidebar-primary: 293 92% 68%;
+    --sidebar-primary-foreground: 280 35% 10%;
+    --sidebar-accent: 279 38% 15%;
+    --sidebar-accent-foreground: 285 35% 96%;
+    --sidebar-border: 286 70% 70% / 0.18;
+    --sidebar-ring: 293 92% 68%;
+  }
+
   * {
     @apply border-border;
   }

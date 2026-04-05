@@ -5,11 +5,30 @@ export type PaymentType = "rent" | "utilities" | "internet" | "other";
 export type MeterType = "water" | "gas" | "electricity";
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "open" | "in_progress" | "done" | "overdue";
+export type ThemeMode = "default" | "purple";
+
+export interface BadgePreferences {
+  all: boolean;
+  properties: boolean;
+  tasks: boolean;
+  invoices: boolean;
+}
+
+export interface UserPreferences {
+  themeMode: ThemeMode;
+  badgePreferences: BadgePreferences;
+  avatarScale: number;
+  avatarX: number;
+  avatarY: number;
+}
 
 export interface User {
   id: string;
   email: string;
   full_name: string;
+  phone?: string | null;
+  avatar?: string | null;
+  preferences?: UserPreferences;
   role: UserRole;
   created_at: string;
 }
@@ -100,6 +119,13 @@ export interface Task {
 export interface AuthResponse {
   token: string;
   user: User;
+}
+
+export interface ProfileUpdatePayload {
+  full_name: string;
+  phone: string;
+  avatar: string | null;
+  preferences: UserPreferences;
 }
 
 export interface ApiErrorPayload {

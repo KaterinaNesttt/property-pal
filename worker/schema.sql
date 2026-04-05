@@ -4,6 +4,9 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL UNIQUE,
   full_name TEXT NOT NULL,
+  phone TEXT,
+  avatar TEXT,
+  preferences TEXT,
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('superadmin', 'owner', 'tenant')),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP

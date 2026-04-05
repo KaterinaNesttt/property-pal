@@ -10,8 +10,7 @@ interface ProfileAvatarEditorProps {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-const distance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
-  Math.hypot(a.x - b.x, a.y - b.y);
+const distance = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
 
 const ProfileAvatarEditor = ({ avatar, scale, x, y, onChange }: ProfileAvatarEditorProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -134,17 +133,19 @@ const ProfileAvatarEditor = ({ avatar, scale, x, y, onChange }: ProfileAvatarEdi
   return (
     <div className="space-y-4">
       <div
-        className={`relative mx-auto h-56 w-56 overflow-hidden rounded-[2rem] border border-white/10 bg-black/30 ${avatar ? "touch-none" : ""}`}
+        className={`relative mx-auto h-56 w-56 overflow-hidden rounded-[2rem] border border-white/10 bg-black/30 ${avatar ? "touch-none" : ""} ${
+          dragging ? "cursor-grabbing" : "cursor-grab"
+        }`}
+        onPointerCancel={handlePointerUp}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
       >
         {avatar ? (
           <>
             <img
               alt="Avatar preview"
-              className="absolute inset-0 h-full w-full object-cover select-none"
+              className="absolute inset-0 h-full w-full select-none object-cover"
               draggable={false}
               src={avatar}
               style={previewStyle}
@@ -154,7 +155,7 @@ const ProfileAvatarEditor = ({ avatar, scale, x, y, onChange }: ProfileAvatarEdi
           </>
         ) : (
           <button
-            className="flex h-full w-full items-center justify-center text-sm text-slate-300"
+            className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-slate-300"
             onClick={() => inputRef.current?.click()}
             type="button"
           >
@@ -182,13 +183,7 @@ const ProfileAvatarEditor = ({ avatar, scale, x, y, onChange }: ProfileAvatarEdi
         Перетягни фото для позиціювання. На тачскріні масштабуй двома пальцями.
       </p>
 
-      <input
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileChange}
-        ref={inputRef}
-        type="file"
-      />
+      <input accept="image/*" className="hidden" onChange={handleFileChange} ref={inputRef} type="file" />
     </div>
   );
 };

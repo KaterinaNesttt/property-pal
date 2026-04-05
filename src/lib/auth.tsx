@@ -1,7 +1,7 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
-import { AuthResponse, User } from "@/lib/types";
+import { AuthResponse, BadgePreferences, ProfileUpdatePayload, User, UserPreferences } from "@/lib/types";
 
 interface Credentials {
   email: string;
@@ -12,23 +12,6 @@ interface RegisterPayload extends Credentials {
   full_name: string;
 }
 
-interface BadgePreferences {
-  all: boolean;
-  properties: boolean;
-  tasks: boolean;
-  invoices: boolean;
-}
-
-export interface UserPreferences {
-  full_name: string;
-  phone: string;
-  avatar: string | null;
-  avatarScale: number;
-  avatarX: number;
-  avatarY: number;
-  badgePreferences: BadgePreferences;
-}
-
 interface AuthContextValue {
   ready: boolean;
   token: string | null;
@@ -37,27 +20,25 @@ interface AuthContextValue {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
   preferences: UserPreferences;
-  updatePreferences: (patch: Partial<UserPreferences>) => void;
+  setPreferences: (patch: Partial<UserPreferences>) => void;
   updateBadgePreferences: (patch: Partial<BadgePreferences>) => void;
+  saveProfile: (payload: Partial<ProfileUpdatePayload>) => Promise<void>;
 }
 
 const STORAGE_KEY = "property-pal-auth";
-const PREFERENCES_KEY = "property-pal-user-preferences";
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const defaultPreferences: UserPreferences = {
-  full_name: "",
-  phone: "",
-  avatar: null,
-  avatarScale: 1,
-  avatarX: 0,
-  avatarY: 0,
+  themeMode: "default",
   badgePreferences: {
     all: true,
     properties: true,
     tasks: true,
     invoices: true,
   },
+  avatarScale: 1,
+  avatarX: 0,
+  avatarY: 0,
 };
 
 function readStoredToken() {
@@ -68,44 +49,32 @@ function readStoredToken() {
   return window.localStorage.getItem(STORAGE_KEY);
 }
 
-function readPreferences() {
-  if (typeof window === "undefined") {
-    return defaultPreferences;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(PREFERENCES_KEY);
-    if (!raw) {
-      return defaultPreferences;
-    }
-    const parsed = JSON.parse(raw) as Partial<UserPreferences>;
-    return {
-      ...defaultPreferences,
-      ...parsed,
-      badgePreferences: {
-        ...defaultPreferences.badgePreferences,
-        ...(parsed.badgePreferences ?? {}),
-      },
-    };
-  } catch {
-    return defaultPreferences;
-  }
+function normalizePreferences(preferences?: Partial<UserPreferences> | null): UserPreferences {
+  return {
+    ...defaultPreferences,
+    ...preferences,
+    badgePreferences: {
+      ...defaultPreferences.badgePreferences,
+      ...(preferences?.badgePreferences ?? {}),
+    },
+  };
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(readStoredToken);
   const [user, setUser] = useState<User | null>(null);
+  const [preferences, setPreferencesState] = useState<UserPreferences>(defaultPreferences);
   const [ready, setReady] = useState(false);
-  const [preferences, setPreferences] = useState<UserPreferences>(readPreferences);
 
   useEffect(() => {
-    window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
-  }, [preferences]);
+    document.documentElement.dataset.theme = preferences.themeMode === "purple" ? "purple" : "default";
+  }, [preferences.themeMode]);
 
   useEffect(() => {
     if (!token) {
       setReady(true);
       setUser(null);
+      setPreferencesState(defaultPreferences);
       return;
     }
 
@@ -116,6 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .then((payload) => {
         if (!cancelled) {
           setUser(payload.user);
+          setPreferencesState(normalizePreferences(payload.user.preferences));
           setReady(true);
         }
       })
@@ -124,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           window.localStorage.removeItem(STORAGE_KEY);
           setToken(null);
           setUser(null);
+          setPreferencesState(defaultPreferences);
           setReady(true);
         }
       });
@@ -133,56 +104,72 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [token]);
 
-  const persistSession = (payload: AuthResponse) => {
+  const persistSession = useCallback((payload: AuthResponse) => {
     window.localStorage.setItem(STORAGE_KEY, payload.token);
     setToken(payload.token);
     setUser(payload.user);
-  };
+    setPreferencesState(normalizePreferences(payload.user.preferences));
+  }, []);
 
-  const handleAuthError = (error: unknown, fallback: string) => {
+  const handleAuthError = useCallback((error: unknown, fallback: string) => {
     if (error instanceof ApiError) {
       toast.error(error.message, { description: error.details });
       return;
     }
 
     toast.error(fallback);
-  };
+  }, []);
 
-  const mergedUser = useMemo<User | null>(() => {
-    if (!user) {
-      return null;
-    }
+  const setPreferences = useCallback((patch: Partial<UserPreferences>) => {
+    setPreferencesState((current) => normalizePreferences({ ...current, ...patch }));
+  }, []);
 
-    return {
-      ...user,
-      full_name: preferences.full_name.trim() || user.full_name,
-    };
-  }, [preferences.full_name, user]);
+  const updateBadgePreferences = useCallback((patch: Partial<BadgePreferences>) => {
+    setPreferencesState((current) =>
+      normalizePreferences({
+        ...current,
+        badgePreferences: {
+          ...current.badgePreferences,
+          ...patch,
+        },
+      }),
+    );
+  }, []);
+
+  const saveProfile = useCallback(
+    async (payload: Partial<ProfileUpdatePayload>) => {
+      if (!token || !user) {
+        return;
+      }
+
+      const nextPreferences = normalizePreferences(payload.preferences ?? preferences);
+      const response = await api.put<{ user: User }>(
+        "/api/profile",
+        {
+          full_name: payload.full_name ?? user.full_name,
+          phone: payload.phone ?? user.phone ?? "",
+          avatar: payload.avatar === undefined ? user.avatar ?? null : payload.avatar,
+          preferences: nextPreferences,
+        },
+        token,
+      );
+
+      setUser(response.user);
+      setPreferencesState(normalizePreferences(response.user.preferences));
+      toast.success("Профіль оновлено");
+    },
+    [preferences, token, user],
+  );
 
   const value = useMemo<AuthContextValue>(
     () => ({
       ready,
       token,
-      user: mergedUser,
+      user,
       preferences,
-      updatePreferences(patch) {
-        setPreferences((current) => ({
-          ...current,
-          ...patch,
-          badgePreferences: patch.badgePreferences
-            ? { ...current.badgePreferences, ...patch.badgePreferences }
-            : current.badgePreferences,
-        }));
-      },
-      updateBadgePreferences(patch) {
-        setPreferences((current) => ({
-          ...current,
-          badgePreferences: {
-            ...current.badgePreferences,
-            ...patch,
-          },
-        }));
-      },
+      setPreferences,
+      updateBadgePreferences,
+      saveProfile,
       async login(payload) {
         try {
           const response = await api.post<AuthResponse>("/api/auth/login", payload);
@@ -206,9 +193,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         window.localStorage.removeItem(STORAGE_KEY);
         setToken(null);
         setUser(null);
+        setPreferencesState(defaultPreferences);
       },
     }),
-    [mergedUser, preferences, ready, token],
+    [handleAuthError, persistSession, preferences, ready, saveProfile, setPreferences, token, updateBadgePreferences, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
