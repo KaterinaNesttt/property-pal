@@ -3,6 +3,12 @@
   "name": "property-pal-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-04-04",
+  "routes": [
+    {
+      "pattern": "api.jopka.pp.ua",
+      "custom_domain": true
+    }
+  ],
   "observability": {
     "enabled": true
   },
