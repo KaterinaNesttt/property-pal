@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "wrangler dev --config worker/wrangler.toml",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "npm run build && wrangler"
+    "deploy:web": "npm run build && wrangler pages deploy dist --project-name property-pal",
+    "deploy:api": "wrangler deploy --config worker/wrangler.toml"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

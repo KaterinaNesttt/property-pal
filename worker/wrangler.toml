@@ -1,13 +1,12 @@
 name = "property-pal-api"
 main = "src/index.ts"
 compatibility_date = "2026-04-05"
+workers_dev = true
+
+[vars]
+CORS_ORIGIN = "https://jopka.pp.ua,http://localhost:8080,http://127.0.0.1:8080"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "jopka_korp"
 database_id = "aecbbe66-d30e-4d8a-926a-cfcb1d804562"
-
-
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "jopka"
