@@ -119,11 +119,12 @@ const PropertyDetails = () => {
     };
   }, [id, metersQuery.data, paymentsQuery.data, tasksQuery.data, tenantsQuery.data]);
 
-  const isLoading = propertyQuery.isLoading || tenantsQuery.isLoading || paymentsQuery.isLoading || metersQuery.isLoading || tasksQuery.isLoading;
-  const hasError = propertyQuery.error || tenantsQuery.error || paymentsQuery.error || metersQuery.error || tasksQuery.error;
+  const isLoading = propertyQuery.isLoading;
+  const hasPropertyError = propertyQuery.error || !propertyQuery.data;
+  const hasRelatedDataError = tenantsQuery.error || paymentsQuery.error || metersQuery.error || tasksQuery.error;
 
   if (isLoading) return <AppLayout><LoadingBlock label="Завантаження сторінки об'єкта..." /></AppLayout>;
-  if (hasError || !propertyQuery.data) return <AppLayout><ErrorBlock label="Не вдалося отримати дані об'єкта." /></AppLayout>;
+  if (hasPropertyError) return <AppLayout><ErrorBlock label="Не вдалося отримати дані об'єкта." /></AppLayout>;
 
   const property = propertyQuery.data;
   const latestMeter = derived.meters[0] ?? null;
@@ -138,6 +139,7 @@ const PropertyDetails = () => {
   return (
     <AppLayout>
       <div className="space-y-8">
+        {hasRelatedDataError ? <ErrorBlock label="Частину пов'язаних даних не вдалося завантажити. Основна картка об'єкта відкрита, але деякі блоки можуть бути неповними." /> : null}
         <PageHeader
           title={property.name}
           description={`${property.address} • ${property.type}`}
