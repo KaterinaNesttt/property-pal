@@ -67,7 +67,10 @@ async function cacheFirst(request) {
   }
 
   const response = await fetch(request);
-  if (response.ok) {
+  const isPartialResponse = response.status === 206;
+  const isRangeRequest = request.headers.has("range");
+
+  if (response.ok && !isPartialResponse && !isRangeRequest) {
     const cache = await caches.open(CACHE_NAME);
     await cache.put(request, response.clone());
   }
@@ -77,7 +80,10 @@ async function cacheFirst(request) {
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    const isPartialResponse = response.status === 206;
+    const isRangeRequest = request.headers.has("range");
+
+    if (response.ok && !isPartialResponse && !isRangeRequest) {
       const cache = await caches.open(CACHE_NAME);
       await cache.put(request, response.clone());
     }
