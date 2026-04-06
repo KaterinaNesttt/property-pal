@@ -59,6 +59,8 @@ const DrumColumn = ({ items, selectedIndex, onSelect, loop = false }: DrumColumn
   const timeoutRef = useRef<number | null>(null);
   const isAdjustingRef = useRef(false);
   const lastReportedIndexRef = useRef(-1);
+  const lastItemsLengthRef = useRef(items.length);
+  const lastSelectedIndexRef = useRef(selectedIndex);
 
   const safeSelectedIndex = items.length > 0 ? clamp(selectedIndex, 0, items.length - 1) : 0;
   const renderedItems = useMemo(
@@ -74,6 +76,15 @@ const DrumColumn = ({ items, selectedIndex, onSelect, loop = false }: DrumColumn
       return;
     }
 
+    const itemsLengthChanged = lastItemsLengthRef.current !== items.length;
+    const selectedChangedExternally = lastSelectedIndexRef.current !== selectedIndex;
+    lastItemsLengthRef.current = items.length;
+    lastSelectedIndexRef.current = selectedIndex;
+
+    if (loop && !itemsLengthChanged && !selectedChangedExternally && node.scrollTop > 0) {
+      return;
+    }
+
     const target = displayIndex * ROW_HEIGHT;
     if (Math.abs(node.scrollTop - target) <= 1) {
       return;
@@ -84,7 +95,7 @@ const DrumColumn = ({ items, selectedIndex, onSelect, loop = false }: DrumColumn
     requestAnimationFrame(() => {
       isAdjustingRef.current = false;
     });
-  }, [displayIndex, items.length]);
+  }, [displayIndex, items.length, loop, selectedIndex]);
 
   useEffect(
     () => () => {
@@ -128,6 +139,9 @@ const DrumColumn = ({ items, selectedIndex, onSelect, loop = false }: DrumColumn
               top: baseIndex * ROW_HEIGHT,
               behavior: "smooth",
             });
+            if (loop) {
+              lastSelectedIndexRef.current = normalizedIndex;
+            }
             window.setTimeout(() => {
               isAdjustingRef.current = false;
             }, ADJUSTING_LOCK);
