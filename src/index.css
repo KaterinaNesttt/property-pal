@@ -160,45 +160,73 @@
   }
 
   :root[data-theme="purple"] {
-    --background: 275 45% 7%;
+    --background: 283 54% 7%;
     --foreground: 285 35% 96%;
-    --border: 285 60% 40% / 0.28;
-    --input: 282 45% 26% / 0.45;
-    --ring: 287 88% 72%;
-    --primary: 287 88% 48%;
+    --border: 289 74% 58% / 0.34;
+    --input: 286 56% 30% / 0.52;
+    --ring: 292 100% 76%;
+    --primary: 292 100% 58%;
     --primary-foreground: 285 35% 98%;
-    --secondary: 279 38% 15%;
+    --secondary: 281 46% 16%;
     --secondary-foreground: 285 35% 96%;
-    --muted: 279 28% 16%;
-    --muted-foreground: 280 18% 72%;
-    --accent: 293 88% 68%;
+    --muted: 280 34% 17%;
+    --muted-foreground: 285 28% 78%;
+    --accent: 296 100% 72%;
     --accent-foreground: 280 35% 10%;
-    --popover: 275 36% 10%;
+    --popover: 279 42% 10%;
     --popover-foreground: 285 35% 96%;
-    --card: 275 36% 10%;
+    --card: 279 42% 10%;
     --card-foreground: 285 35% 96%;
-    --btns: 293 100% 35%;
-    --glass-bg: 286 70% 58% / 0.08;
-    --glass-border: 286 70% 70% / 0.18;
-    --glass-highlight: 294 100% 88% / 0.32;
-    --glass-glow: 286 100% 78% / 0.18;
+    --btns: 293 100% 44%;
+    --glass-bg: 286 92% 62% / 0.14;
+    --glass-border: 289 100% 74% / 0.28;
+    --glass-highlight: 296 100% 90% / 0.42;
+    --glass-glow: 286 100% 78% / 0.3;
+    --gradient-bg: linear-gradient(
+      135deg,
+      hsl(270 46% 8%) 0%,
+      hsl(277 52% 10%) 18%,
+      hsl(284 58% 12%) 36%,
+      hsl(290 66% 14%) 58%,
+      hsl(297 72% 16%) 78%,
+      hsl(304 84% 18%) 100%
+    );
     --gradient: linear-gradient(
       45deg,
-      hsl(274 88% 24%) 0%,
-      hsl(281 89% 28%) 22%,
-      hsl(287 91% 34%) 48%,
-      hsl(293 92% 40%) 72%,
-      hsl(301 100% 45%) 100%
+      hsl(277 92% 28%) 0%,
+      hsl(284 94% 36%) 24%,
+      hsl(291 97% 44%) 50%,
+      hsl(298 100% 54%) 76%,
+      hsl(304 100% 62%) 100%
     );
     --gradient-blue: var(--gradient);
-    --sidebar-background: 275 42% 8%;
+    --gradient-btn: linear-gradient(
+      135deg,
+      hsl(281 94% 30%) 0%,
+      hsl(289 100% 40%) 45%,
+      hsl(300 100% 54%) 100%
+    );
+    --gradient-light: linear-gradient(
+      135deg,
+      hsl(282 72% 52%) 0%,
+      hsl(292 84% 60%) 50%,
+      hsl(304 96% 66%) 100%
+    );
+    --sidebar-background: 279 48% 8%;
     --sidebar-foreground: 285 35% 96%;
-    --sidebar-primary: 293 92% 68%;
+    --sidebar-primary: 296 100% 72%;
     --sidebar-primary-foreground: 280 35% 10%;
-    --sidebar-accent: 279 38% 15%;
+    --sidebar-accent: 282 42% 16%;
     --sidebar-accent-foreground: 285 35% 96%;
-    --sidebar-border: 286 70% 70% / 0.18;
-    --sidebar-ring: 293 92% 68%;
+    --sidebar-border: 289 100% 74% / 0.26;
+    --sidebar-ring: 296 100% 72%;
+    --sidebar-gradient: linear-gradient(
+      180deg,
+      hsl(272 62% 7%) 0%,
+      hsl(280 70% 10%) 28%,
+      hsl(288 77% 13%) 58%,
+      hsl(298 88% 16%) 100%
+    );
   }
 
   * {
@@ -221,6 +249,21 @@
     radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.08), transparent 40%),
     radial-gradient(circle at 80% 70%, rgba(0, 0, 0, 0.05), transparent 40%),
     #000;
+}
+
+:root[data-theme="purple"] body {
+  background:
+    radial-gradient(circle at top left, rgba(172, 71, 255, 0.18), transparent 34%),
+    radial-gradient(circle at top right, rgba(226, 89, 255, 0.12), transparent 28%),
+    hsl(283 54% 7%);
+}
+
+:root[data-theme="purple"] .bg-liquid {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(180, 74, 255, 0.2), transparent 34%),
+    radial-gradient(circle at 82% 20%, rgba(234, 96, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 50% 78%, rgba(142, 58, 255, 0.12), transparent 36%),
+    hsl(283 54% 7%);
 }
 
 
@@ -276,6 +319,11 @@
     transform: translateY(-2px) scale(1.02);
   }
 
+  :root[data-theme="purple"] .glass-card:hover {
+    background: hsl(289 92% 62% / 0.18);
+    border-color: hsl(296 100% 76% / 0.34);
+  }
+
   .glass-card:hover::after {
     opacity: 0.8;
   }
@@ -303,6 +351,11 @@
     border-color: hsl(0 0% 0% / 0.14);
   }
 
+  :root[data-theme="purple"] .glass-button:hover {
+    background: hsl(291 100% 66% / 0.18);
+    border-color: hsl(298 100% 76% / 0.36);
+  }
+
   .glass-button:active {
     transform: scale(0.98);
   }
@@ -324,6 +377,19 @@
   .glass-input:focus {
     border-color: hsl(0 0% 0% / 0.2);
     background: hsl(0 0% 0% / 0.05);
+  }
+
+  :root[data-theme="purple"] .glass-input,
+  :root[data-theme="purple"] .glass-nav,
+  :root[data-theme="purple"] .glass-icon {
+    background: hsl(286 92% 62% / 0.12);
+  }
+
+  :root[data-theme="purple"] .glass-input:focus,
+  :root[data-theme="purple"] .glass-select:hover,
+  :root[data-theme="purple"] .glass-icon:hover {
+    background: hsl(291 100% 66% / 0.16);
+    border-color: hsl(298 100% 76% / 0.34);
   }
 
   .glass-select {
@@ -444,4 +510,12 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255,255,255,0.2);
+}
+
+:root[data-theme="purple"] ::-webkit-scrollbar-thumb {
+  background: rgba(190, 104, 255, 0.38);
+}
+
+:root[data-theme="purple"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(216, 125, 255, 0.56);
 }
