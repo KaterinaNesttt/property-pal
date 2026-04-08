@@ -48,7 +48,7 @@ const Properties = () => {
 
   const mutation = useMutation({
     mutationFn: (payload: PropertyFormValues) => {
-      const body = { ...payload, rent_amount: Number(payload.rent_amount || 0) };
+      const body = { ...payload, name: payload.id ? payload.name : payload.address, rent_amount: Number(payload.rent_amount || 0) };
       return payload.id
         ? api.put<Property>(`/api/properties/${payload.id}`, body, token)
         : api.post<Property>("/api/properties", body, token);
@@ -158,6 +158,7 @@ const Properties = () => {
               onReset={() => setDraft(initialForm)}
               onSubmit={submit}
               roleLabel={roleLabel}
+              showNameField={false}
             />
             </div>
           </DialogContent>

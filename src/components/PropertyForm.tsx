@@ -22,13 +22,14 @@ interface PropertyFormProps {
   draft: PropertyFormValues;
   activeTenantsCount: number;
   roleLabel?: string;
+  showNameField?: boolean;
   isPending: boolean;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onChange: (updater: (current: PropertyFormValues) => PropertyFormValues) => void;
   onReset: () => void;
 }
 
-const PropertyForm = ({ draft, activeTenantsCount, roleLabel, isPending, onSubmit, onChange, onReset }: PropertyFormProps) => {
+const PropertyForm = ({ draft, activeTenantsCount, roleLabel, showNameField = true, isPending, onSubmit, onChange, onReset }: PropertyFormProps) => {
   return (
     <form className="grid gap-5" onSubmit={onSubmit}>
       <div className="grid gap-4 rounded-[1.75rem] border border-white/10 bg-black/20 p-5 backdrop-blur-2xl">
@@ -37,7 +38,7 @@ const PropertyForm = ({ draft, activeTenantsCount, roleLabel, isPending, onSubmi
           <h3 className="mt-2 text-lg font-semibold text-white">Паспорт об'єкта</h3>
         </div>
         <div className="grid gap-4">
-          <input className="glass-input" onChange={(event) => onChange((current) => ({ ...current, name: event.target.value }))} placeholder="Назва" required value={draft.name} />
+          {showNameField ? <input className="glass-input" onChange={(event) => onChange((current) => ({ ...current, name: event.target.value }))} placeholder="Назва" required value={draft.name} /> : null}
           <input className="glass-input" onChange={(event) => onChange((current) => ({ ...current, address: event.target.value }))} placeholder="Адреса" required value={draft.address} />
           <div className="grid gap-4 md:grid-cols-2">
             <input className="glass-input" onChange={(event) => onChange((current) => ({ ...current, type: event.target.value }))} placeholder="Тип" required value={draft.type} />
