@@ -21,7 +21,7 @@ const classes: Record<Variant, string> = {
 
 const StatusBadge = ({ value, label }: { value: Variant; label?: string }) => {
   return (
-    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${classes[value]}`}>
+    <span className={`glass-button text-center font-semibold ${classes[value]}`}>
       {label ?? value}
     </span>
   );

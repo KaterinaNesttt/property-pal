@@ -24,7 +24,7 @@ function clearLegacyPwaState() {
   });
 }
 
-if (import.meta.env.DEV || import.meta.env.PROD) {
+if (import.meta.env.DEV) {
   clearLegacyPwaState();
 }
 

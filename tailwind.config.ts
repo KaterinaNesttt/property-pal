@@ -61,7 +61,7 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
+          DEFAULT: "hsl(var(--sidebar-gradient))",
           foreground: "hsl(var(--sidebar-foreground))",
           primary: "hsl(var(--sidebar-primary))",
           "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
@@ -74,6 +74,9 @@ export default {
       backgroundImage: {
         gradient: "var(--gradient)",
         "gradient-blue": "var(--gradient-blue)",
+        "gradient-btn": "var(--gradient-btn)",
+        "gradient-light": "var(--gradient-light)",
+        "gradient-bg": "var(--gradient-bg)",
       },
       borderRadius: {
         lg: "var(--radius)",

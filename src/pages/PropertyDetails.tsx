@@ -143,11 +143,11 @@ const PropertyDetails = () => {
         <PageHeader
           title={property.name}
           description={`${property.address} • ${property.type}`}
-          actions={<div className="flex flex-wrap gap-2">
+          actions={<div className="grid grid-cols-2 items-center gap-2">
             <Link className="glass-button" to="/properties"><ArrowLeft className="mr-2 inline h-4 w-4" />До списку</Link>
             <button className="glass-button" onClick={() => { setDraft(toFormValues(property)); setOpen(true); }} type="button"><Pencil className="mr-2 inline h-4 w-4" />Редагувати</button>
             <button className="glass-button text-rose-200" onClick={() => setDeleteOpen(true)} type="button"><Trash2 className="mr-2 inline h-4 w-4" />Видалити</button>
-            <StatusBadge label={property.status === "free" ? "Вільний" : property.status === "rented" ? "Зданий" : "Обслуговування"} value={property.status} />
+            <StatusBadge    label={property.status === "free" ? "Вільна" : property.status === "rented" ? "Здана" : "Обслуговування"}  value={property.status}  />
           </div>}
         />
 
@@ -237,9 +237,13 @@ const PropertyDetails = () => {
         </div>
 
         <Dialog onOpenChange={setOpen} open={open}>
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-[#050816] text-white">
-            <DialogHeader><DialogTitle>Редагування об'єкта</DialogTitle><DialogDescription className="text-slate-400">Оновіть основні дані по об'єкту нерухомості.</DialogDescription></DialogHeader>
-            {draft ? <PropertyForm activeTenantsCount={activeTenantsCount} draft={draft} isPending={updateMutation.isPending} onChange={setDraft} onReset={() => setDraft(toFormValues(property))} onSubmit={submit} roleLabel={roleLabel} /> : null}
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-gradient p-0 text-white shadow-[0_30px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+            <div className="border-b border-white/10 bg-white/[0.03] px-6 py-5">
+              <DialogHeader><DialogTitle>Редагування об'єкта</DialogTitle><DialogDescription className="text-slate-400">Оновіть основні дані по об'єкту нерухомості.</DialogDescription></DialogHeader>
+            </div>
+            <div className="px-6 py-6">
+              {draft ? <PropertyForm activeTenantsCount={activeTenantsCount} draft={draft} isPending={updateMutation.isPending} onChange={setDraft} onReset={() => setDraft(toFormValues(property))} onSubmit={submit} roleLabel={roleLabel} /> : null}
+            </div>
           </DialogContent>
         </Dialog>
 

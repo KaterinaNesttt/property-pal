@@ -1,5 +1,12 @@
 import { FormEvent } from "react";
 import IosDrumPicker from "@/components/ui/ios-date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Property } from "@/lib/types";
 
 export interface TenantFormValues {
@@ -24,14 +31,18 @@ interface TenantFormProps {
 const TenantForm = ({ draft, availableProperties, isPending, onSubmit, onChange, onReset }: TenantFormProps) => {
   return (
     <form className="grid gap-4" onSubmit={onSubmit}>
-      <select className="glass-input glass-select" onChange={(event) => onChange((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
-        <option value="">Оберіть об'єкт</option>
-        {availableProperties.map((property) => (
-          <option key={property.id} value={property.id}>
-            {property.name} {property.status === "rented" ? "(зайнятий)" : ""}
-          </option>
-        ))}
-      </select>
+      <Select onValueChange={(value) => onChange((current) => ({ ...current, property_id: value }))} value={draft.property_id}>
+        <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+          <SelectValue placeholder="Оберіть об'єкт" />
+        </SelectTrigger>
+        <SelectContent>
+          {availableProperties.map((property) => (
+            <SelectItem key={property.id} value={property.id}>
+              {property.name} {property.status === "rented" ? "(зайнятий)" : ""}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <input className="glass-input" onChange={(event) => onChange((current) => ({ ...current, full_name: event.target.value }))} placeholder="ПІБ" required value={draft.full_name} />
       <input className="glass-input" onChange={(event) => onChange((current) => ({ ...current, phone: event.target.value }))} placeholder="Телефон" required value={draft.phone} />
       <IosDrumPicker

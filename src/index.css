@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 10%;
+    --background: 0 0% 6%;
     --foreground: 210 40% 96%;
 
     --border: 0 0% 0% / 0.1;
@@ -51,6 +51,20 @@
     --sidebar-accent-foreground: 210 40% 96%;
     --sidebar-border: 0 0% 0% / 0.08;
     --sidebar-ring: 201 92% 66%;
+    --sidebar-gradient: linear-gradient(
+    40deg,
+    hsl(310deg 75% 2%) 0%,
+    hsl(302deg 96% 3%) 10%,
+    hsl(295deg 100% 4%) 20%,
+    hsl(293deg 79% 7%) 30%,
+    hsl(291deg 64% 10%) 40%,
+    hsl(295deg 71% 12%) 50%,
+    hsl(295deg 61% 10%) 60%,
+    hsl(300deg 69% 6%) 70%,
+    hsl(301deg 85% 4%) 80%,
+    hsl(304deg 90% 3%) 90%,
+    hsl(308deg 100% 2%) 100%
+  );
 
     --radius: 1rem;
 
@@ -59,6 +73,23 @@
     --glass-border: 0 0% 0% / 0.08;
     --glass-highlight: 0 0% 0% / 0.25;
     --glass-glow: 0 0% 0% / 0.12;
+
+    --gradient-bg: linear-gradient(
+    45deg,
+    hsl(0deg 0% 9%) 0%,
+    hsl(344deg 0% 12%) 8%,
+    hsl(344deg 0% 15%) 17%,
+    hsl(344deg 0% 18%) 25%,
+    hsl(0deg 0% 21%) 33%,
+    hsl(344deg 0% 18%) 42%,
+    hsl(344deg 0% 15%) 50%,
+    hsl(344deg 0% 12%) 58%,
+    hsl(0deg 0% 10%) 67%,
+    hsl(344deg 0% 9%) 75%,
+    hsl(344deg 0% 8%) 83%,
+    hsl(344deg 0% 7%) 92%,
+    hsl(0deg 0% 6%) 100%
+  );
 
     --gradient: linear-gradient(
     40deg,
@@ -74,6 +105,38 @@
     hsl(304deg 90% 3%) 90%,
     hsl(308deg 100% 2%) 100%
   );
+
+
+ 
+  --gradient-btn: linear-gradient(
+    305deg,
+    hsl(300deg 76% 5%) 0%,
+    hsl(301deg 66% 7%) 10%,
+    hsl(301deg 67% 9%) 20%,
+    hsl(299deg 74% 12%) 30%,
+    hsl(293deg 77% 16%) 40%,
+    hsl(288deg 75% 21%) 50%,
+    hsl(293deg 77% 16%) 60%,
+    hsl(299deg 74% 12%) 70%,
+    hsl(301deg 67% 9%) 80%,
+    hsl(301deg 66% 7%) 90%,
+    hsl(300deg 76% 5%) 100%
+  );
+
+    --gradient-light: linear-gradient(
+    25deg,
+    hsl(300deg 58% 38%) 0%,
+    hsl(298deg 57% 36%) 12%,
+    hsl(297deg 56% 34%) 26%,
+    hsl(296deg 56% 31%) 40%,
+    hsl(296deg 56% 29%) 53%,
+    hsl(297deg 55% 26%) 66%,
+    hsl(300deg 54% 22%) 78%,
+    hsl(302deg 53% 19%) 88%,
+    hsl(301deg 53% 17%) 96%,
+    hsl(300deg 52% 14%) 100%
+  );
+
 
 --gradient-blue: linear-gradient(
     45deg,
@@ -145,7 +208,7 @@
   body {
     @apply text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
-    background: #000;
+    background: #000000;
   }
 }
 
@@ -252,9 +315,10 @@
     @apply w-full px-4 py-3 rounded-xl 
            text-white placeholder-white/40 
            outline-none transition-all;
-    background: hsl(0 0% 100% / 0.03);
+    background: hsl(0 0% 0% / 0.03);
     border: 1px solid hsl(var(--glass-border));
     backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   }
 
   .glass-input:focus {

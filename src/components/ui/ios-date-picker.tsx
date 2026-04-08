@@ -1,17 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import IosDrumColumn from "@/components/ui/ios-drum-column";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-const ROW_HEIGHT = 36;
-const VISIBLE_ROWS = 5;
-const PICKER_HEIGHT = ROW_HEIGHT * VISIBLE_ROWS;
-const EDGE_PADDING = ROW_HEIGHT * 2;
 const MIN_YEAR = 1985;
 const MAX_YEAR = 2047;
-const LOOP_COPIES = 3;
-const SETTLE_DELAY = 140;
-const ADJUSTING_LOCK = 180;
 
 const monthNames = [
   "Січень",
@@ -45,7 +39,6 @@ const monthNamesGenitive = [
 
 const pad = (value: number) => String(value).padStart(2, "0");
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const mod = (value: number, base: number) => ((value % base) + base) % base;
 const getDaysInMonth = (year: number, month: number) => new Date(year, month, 0).getDate();
 
 const parseDate = (value: string) => {
@@ -69,138 +62,6 @@ const formatDisplayDate = (value: string) => {
 
 const buildDate = (year: number, month: number, day: number) =>
   `${year}-${pad(month)}-${pad(Math.min(day, getDaysInMonth(year, month)))}`;
-
-interface DrumColumnProps {
-  items: string[];
-  selectedIndex: number;
-  onSelect: (index: number) => void;
-  loop?: boolean;
-}
-
-const DrumColumn = ({ items, selectedIndex, onSelect, loop = false }: DrumColumnProps) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const timeoutRef = useRef<number | null>(null);
-  const isAdjustingRef = useRef(false);
-  const lastReportedIndexRef = useRef(-1);
-  const lastItemsLengthRef = useRef(items.length);
-  const lastSelectedIndexRef = useRef(selectedIndex);
-
-  const safeSelectedIndex = items.length > 0 ? clamp(selectedIndex, 0, items.length - 1) : 0;
-  const renderedItems = useMemo(
-    () => (loop && items.length > 0 ? Array.from({ length: LOOP_COPIES }, () => items).flat() : items),
-    [items, loop],
-  );
-  const middleOffset = loop && items.length > 0 ? items.length : 0;
-  const displayIndex = loop && items.length > 0 ? middleOffset + safeSelectedIndex : safeSelectedIndex;
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || items.length === 0) {
-      return;
-    }
-
-    const itemsLengthChanged = lastItemsLengthRef.current !== items.length;
-    const selectedChangedExternally = lastSelectedIndexRef.current !== selectedIndex;
-    lastItemsLengthRef.current = items.length;
-    lastSelectedIndexRef.current = selectedIndex;
-
-    if (loop && !itemsLengthChanged && !selectedChangedExternally && node.scrollTop > 0) {
-      return;
-    }
-
-    const target = displayIndex * ROW_HEIGHT;
-    if (Math.abs(node.scrollTop - target) <= 1) {
-      return;
-    }
-
-    isAdjustingRef.current = true;
-    node.scrollTo({ top: target, behavior: "auto" });
-    requestAnimationFrame(() => {
-      isAdjustingRef.current = false;
-    });
-  }, [displayIndex, items.length, loop, selectedIndex]);
-
-  useEffect(
-    () => () => {
-      if (timeoutRef.current) {
-        window.clearTimeout(timeoutRef.current);
-      }
-    },
-    [],
-  );
-
-  return (
-    <div className="relative flex-1 overflow-hidden rounded-[1.4rem] bg-white/5 [perspective:1200px]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-black/55 via-black/20 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-2 top-1/2 z-10 h-9 -translate-y-1/2 rounded-xl border-y border-btns/40 bg-btns/20" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-black/55 via-black/20 to-transparent" />
-      <div
-        ref={ref}
-        className="h-full snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [touch-action:pan-y] [&::-webkit-scrollbar]:hidden"
-        onScroll={(event) => {
-          if (items.length === 0 || isAdjustingRef.current) {
-            return;
-          }
-
-          const node = event.currentTarget;
-          const rawIndex = Math.round(node.scrollTop / ROW_HEIGHT);
-          const normalizedIndex = loop ? mod(rawIndex, items.length) : clamp(rawIndex, 0, items.length - 1);
-
-          if (lastReportedIndexRef.current !== normalizedIndex) {
-            lastReportedIndexRef.current = normalizedIndex;
-            onSelect(normalizedIndex);
-          }
-
-          if (timeoutRef.current) {
-            window.clearTimeout(timeoutRef.current);
-          }
-
-          timeoutRef.current = window.setTimeout(() => {
-            const baseIndex = loop ? middleOffset + normalizedIndex : normalizedIndex;
-            isAdjustingRef.current = true;
-            node.scrollTo({
-              top: baseIndex * ROW_HEIGHT,
-              behavior: "smooth",
-            });
-            if (loop) {
-              lastSelectedIndexRef.current = normalizedIndex;
-            }
-            window.setTimeout(() => {
-              isAdjustingRef.current = false;
-            }, ADJUSTING_LOCK);
-          }, SETTLE_DELAY);
-        }}
-        style={{ height: PICKER_HEIGHT, paddingTop: EDGE_PADDING, paddingBottom: EDGE_PADDING }}
-      >
-        {renderedItems.map((item, index) => {
-          const activeIndex = loop && items.length > 0 ? middleOffset + safeSelectedIndex : safeSelectedIndex;
-          const distance = Math.abs(index - activeIndex);
-          const clampedDistance = Math.min(distance, 3);
-          const textClass =
-            distance === 0 ? "text-white scale-100 opacity-100" : distance === 1 ? "text-white/75 scale-[0.975] opacity-85" : "text-white/40 scale-[0.9] opacity-45";
-          const transformStyle = {
-            transform: `rotateX(${clampedDistance * 14}deg) scale(${distance === 0 ? 1 : distance === 1 ? 0.975 : 0.9}) translateZ(${Math.max(0, 24 - clampedDistance * 10)}px)`,
-          };
-
-          return (
-            <button
-              key={`${item}-${index}`}
-              className={cn(
-                "flex h-9 w-full snap-center items-center justify-center px-2 text-center text-sm font-medium transition-all duration-300 ease-out [transform-style:preserve-3d] will-change-transform",
-                textClass,
-              )}
-              onClick={() => onSelect(loop && items.length > 0 ? mod(index, items.length) : index)}
-              style={transformStyle}
-              type="button"
-            >
-              {item}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
 
 export interface IosDrumPickerProps {
   value: string;
@@ -256,9 +117,9 @@ const IosDrumPicker = ({ value, onChange, placeholder = "Оберіть дату
       >
         <div className="grid gap-4">
           <div className="grid grid-cols-3 gap-3">
-            <DrumColumn items={days} loop selectedIndex={dayIndex} onSelect={(index) => updateDate(base.year, base.month, index + 1)} />
-            <DrumColumn items={months} loop selectedIndex={monthIndex} onSelect={(index) => updateDate(base.year, index + 1, base.day)} />
-            <DrumColumn items={years} selectedIndex={yearIndex} onSelect={(index) => updateDate(Number(years[index]), base.month, base.day)} />
+            <IosDrumColumn items={days} loop selectedIndex={dayIndex} onSelect={(index) => updateDate(base.year, base.month, index + 1)} />
+            <IosDrumColumn items={months} loop selectedIndex={monthIndex} onSelect={(index) => updateDate(base.year, index + 1, base.day)} />
+            <IosDrumColumn items={years} selectedIndex={yearIndex} onSelect={(index) => updateDate(Number(years[index]), base.month, base.day)} />
           </div>
           <button className="glass-button justify-center bg-btns/15 text-white" onClick={() => setOpen(false)} type="button">
             Готово

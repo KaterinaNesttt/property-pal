@@ -67,7 +67,7 @@ const MobileNav = () => {
           <>
             <motion.button
               aria-label="Закрити меню"
-              className="fixed inset-0 z-40 bg-black/55 backdrop-blur-xs"
+              className="fixed inset-0 z-40 bg-gradient/90 backdrop-blur-xs"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -75,13 +75,13 @@ const MobileNav = () => {
               type="button"
             />
             <motion.aside
-              className="fixed inset-y-0 right-0 z-50 flex w-[min(92vw,360px)] flex-col border-l border-black/10 bg-black/88 p-5 shadow-2xl backdrop-blur-2xl"
+              className="fixed inset-y-0 right-0 z-50 flex w-[min(92vw,360px)] flex-col border-l border-black/10 bg-gradient/80 p-5 pt-[calc(env(safe-area-inset-top)+1.25rem)] shadow-2xl backdrop-blur-2xl"
               initial={{ x: "100%", opacity: 0.9 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0.95 }}
               transition={{ type: "spring", stiffness: 280, damping: 28 }}
             >
-              <div className="flex items-start justify-between gap-4 border-b border-black/10 pb-5">
+              <div className="flex items-start justify-between gap-4 border-b border-black/10  pb-5">
                 <div className="flex items-center gap-4">
                   <div className="relative h-14 w-14 overflow-hidden rounded-full border border-black/10 bg-black/30">
                     {user?.avatar ? (
@@ -137,62 +137,74 @@ const MobileNav = () => {
         ) : null}
       </AnimatePresence>
  
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-4 md:px-6 md:pb-6">
-        <motion.div
-          className="pointer-events-auto relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-black/20 bg-gradient-to-r from-black/10 to-black/5 p-2 shadow-2xl shadow-[0_25px_80px_rgba(2,6,23,0.55)] backdrop-blur-xl"
-          initial={false}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-pink-500/5" />
-          <div className="grid grid-cols-5 gap-1">
-            {mainItems.map((item) => {
-              const Icon = item.icon;
-              const active = location.pathname === item.to;
-              const badgeValue = item.badgeKey ? counts[item.badgeKey] : 0;
-              const badgeVisible = item.badgeKey ? showBadge(item.badgeKey) && badgeValue > 0 : false;
-              return (
-                <NavLink
-                  key={item.to}
-                  className="group relative flex flex-col items-center"
-                  to={item.to}
-                >
-                  {badgeVisible && (
-                    <span className="absolute -right-0.5 -top-0.5 z-20 inline-flex min-w-4 items-center justify-center rounded-full bg-btns px-1 text-[9px] font-semibold text-slate-950">
-                      {badgeValue}
-                    </span>
-                  )}
+<div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-2 pb-4 md:px-6 md:pb-6">
+  <div className="pointer-events-auto relative mx-auto max-w-4xl overflow-visible">
+    <motion.div
+      className="relative overflow-hidden rounded-3xl border border-black/20 bg-gradient-to-r from-black/10 to-black/5 p-2 shadow-2xl shadow-[0_25px_80px_rgba(2,6,23,0.55)] backdrop-blur-xl"
+      initial={false}
+    >
+      <div className="absolute inset-0 bg-gradient/40 pointer-events-none z-0" />
+
+      <div className="relative z-10 grid grid-cols-5 gap-1">
+        {mainItems.map((item) => {
+          const Icon = item.icon;
+          const active = location.pathname === item.to;
+          const badgeValue = item.badgeKey ? counts[item.badgeKey] : 0;
+          const badgeVisible =
+            item.badgeKey ? showBadge(item.badgeKey) && badgeValue > 0 : false;
+
+          return (
+            <NavLink
+              key={item.to}
+              className="group relative flex flex-col items-center"
+              to={item.to}
+            >
+              {badgeVisible && (
+                <span className="absolute -right-0.5 -top-0.5 z-20 inline-flex min-w-4 items-center justify-center rounded-full bg-gradient-btn  text-[12px] font-semibold text-accent">
+                  {badgeValue}
+                </span>
+              )}
+
+              <motion.div
+                className="relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-3xl  py-2.5"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
+                {active && (
                   <motion.div
-                    className={`relative flex w-full flex-col items-center justify-center gap-1 rounded-3xl px-1 py-2.5 transition-colors ${
-                      active
-                        ? "bg-background/80 backdrop-blur-sm"
-                        : "bg-transparent"
-                    }`}
-                    whileTap={{ scale: 0.94 }}
-                    transition={{ duration: 0.15 }}
+                    layoutId="mobile-nav-active-tab"
+                    className="absolute -inset-1 z-10 rounded-[1.4rem] bg-gradient"
+                    initial={{ scale: 0.8, opacity: 1 }}
+                    animate={{ scale: 1.01, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 28 }}
                   >
-                    {active && (
-                      <motion.div
-                        layoutId="mobile-nav-active-tab"
-                        className="absolute inset-0 rounded-3xl bg-background/80 backdrop-blur-sm"
-                        transition={{ type: "spring", stiffness: 320, damping: 26 }}
-                      />
-                    )}
-                    <Icon
-                      strokeWidth={active ? 4.25 : 1.2}
-                      className={`relative z-10 h-5 w-5 transition-all ${
-                        active ? "text-accent" : "text-white group-hover:text-accent/10"
-                      }`}
-                    />
-                    <span
-                      className={`relative z-10 text-[10.5px] font-medium leading-none transition-colors ${
-                        active ? "text-accent font-semibold" : "text-slate-400 group-hover:text-slate-200"
-                      }`}
-                    >
-                      {item.label}
-                    </span>
+                    <div className="absolute inset-0 rounded-[1.4rem] bg-gradient" />
                   </motion.div>
-                </NavLink>
-              );
-            })}
+                )}
+
+                <Icon
+                  strokeWidth={active ? 3 : 1.5}
+                  className={`relative z-20 h-7 w-7 transition-all duration-200 ${
+                    active
+                      ? "scale-130 text-white/80"
+                      : "text-white group-hover:scale-105 group-hover:text-white/60"
+                  }`}
+                />
+
+                <span
+                  className={`relative z-20 text-[12px] font-medium leading-none transition-colors ${
+                    active
+                      ? "font-semibold text-white/70"
+                      : "text-slate-400 group-hover:text-slate-200"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </motion.div>
+            </NavLink>
+          );
+        })}
  
             {/* Menu button */}
             <button
@@ -204,25 +216,26 @@ const MobileNav = () => {
                 className={`relative flex w-full flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2.5 transition-colors ${
                   open ? "bg-black/15" : "bg-transparent"
                 }`}
-                whileTap={{ scale: 0.94 }}
-                transition={{ duration: 0.15 }}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 1.01 }}
+               transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
                 {open && (
                   <motion.div
                     layoutId="mobile-nav-active-tab"
-                    className="absolute inset-0 rounded-2xl bg-white/15"
+                    className="absolute inset-0 rounded-2xl bg-black/15"
                     transition={{ type: "spring", stiffness: 320, damping: 26 }}
                   />
                 )}
                 <Menu
-                  strokeWidth={open ? 2.25 : 1.6}
-                  className={`relative z-10 h-5 w-5 transition-all ${
-                    open ? "text-accent" : "text-slate-400 group-hover:text-slate-200"
+                  strokeWidth={open ? 3 : 1.5}
+                  className={`relative z-10 h-7 w-7 transition-all ${
+                    open ? "text-white" : "text-slate-400 group-hover:text-slate-200"
                   }`}
                 />
                 <span
-                  className={`relative z-10 text-[10.5px] font-medium leading-none transition-colors ${
-                    open ? "text-accent font-semibold" : "text-slate-400 group-hover:text-slate-200"
+                  className={`relative z-10 text-[12px] font-medium leading-none transition-colors ${
+                    open ? "text-white font-semibold" : "text-slate-400 group-hover:text-slate-200"
                   }`}
                 >
                   Меню
@@ -231,6 +244,7 @@ const MobileNav = () => {
             </button>
           </div>
         </motion.div>
+      </div>
       </div>
     </>
   );

@@ -89,7 +89,7 @@ const OfflineSyncBridge = () => {
 
 const PwaRegistration = () => {
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
+    if (import.meta.env.DEV || !("serviceWorker" in navigator)) return;
 
     window.addEventListener("load", () => {
       navigator.serviceWorker

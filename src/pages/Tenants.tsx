@@ -186,7 +186,7 @@ const Tenants = () => {
         </section>
 
         <Dialog onOpenChange={setOpen} open={open}>
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-[#050816] text-white">
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-gradient text-white">
             <DialogHeader>
               <DialogTitle>{draft.id ? "Редагування орендаря" : "Новий орендар"}</DialogTitle>
               <DialogDescription className="text-slate-400">

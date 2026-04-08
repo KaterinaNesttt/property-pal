@@ -56,7 +56,7 @@ const SettingsPage = () => {
     <AppLayout>
       <div className="space-y-8">
         <PageHeader
-          description="Керуй своїм профілем і налаштуваннями застосунку."
+          description=""
           title="Налаштування"
         />
 

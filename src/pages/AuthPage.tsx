@@ -2,6 +2,9 @@ import { FormEvent, useState } from "react";
 import { LockKeyhole, Mail, User2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/lib/auth";
+import heroVideo from "@/assets/hero-video.mov";
+import { useEffect, useRef } from "react";
+import loginimg from "@/assets/login.png";
 
 const copy = {
   login: "Вхід",
@@ -24,6 +27,15 @@ const AuthPage = () => {
   const { login, register } = useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [busy, setBusy] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch(() => {});
+      video.playbackRate = 0.8;
+    }
+  }, []);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,7 +61,26 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient text-foreground">
+
+
+    
+    <div className="min-h-screen  text-foreground">
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <video
+          ref={videoRef}
+          src={heroVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          poster="/hero-poster.webp"
+          className="absolute w-full h-full object-center object-cover scale-125 "
+        />
+        <div className="absolute inset-0 bg-gradient-bg opacity-10 backdrop-blur-2xl" />
+      </div>
+
+      <div className="relative z-10 "></div>
       <div className="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-10 md:px-8">
         <motion.div
           className="grid w-full gap-8 lg:grid-cols-[1.2fr_0.8fr]"
@@ -57,7 +88,14 @@ const AuthPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <section className="glass-card p-8 shadow-sm">
+
+  <section className="glass-card  p-8 md:p-10 ">
+            <p className="text-xs uppercase tracking-[0.24em] text-right text-accent mr-3">Batushka corp</p>
+            <img src={loginimg} className="mt-5 opacity-80" alt="Logo"  />
+            <p className="mt-5 max-w-2xl text-center text-base text-slate-300">{copy.subheading}</p>            
+          </section>
+
+          <section className="glass-card  p-8 md:p-10 ">
             {/* Tab switcher */}
             <div className="relative flex rounded-full border border-black/10 bg-black/20 p-1">
               <motion.span
@@ -120,11 +158,11 @@ const AuthPage = () => {
                   </label>
 
                   <motion.button
-                    className="glass-button w-full justify-center bg-gradient-blue text-white"
+                    className="glass-button w-full justify-center bg-gradient-light text-white"
                     disabled={busy}
                     type="submit"
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    whileTap={{ scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 26 }}
                   >
                     {busy ? copy.busy : mode === "login" ? copy.submitLogin : copy.submitRegister}
                   </motion.button>
@@ -133,29 +171,12 @@ const AuthPage = () => {
             </form>
           </section>
 
-          <section className="glass-card bg-gradient p-8 md:p-10">
-            <p className="text-xs uppercase tracking-[0.24em] text-accent">Jopka corp</p>
-            <h1 className="mt-4 max-w-xl text-4xl font-bold leading-tight text-white md:text-4xl">
-              {copy.heading}
-            </h1>
-            <p className="mt-5 max-w-2xl text-base text-slate-300">{copy.subheading}</p>
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {copy.cards.map((item, index) => (
-                <motion.div
-                  key={item}
-                  className="rounded-3xl border border-black/10 bg-black/20 p-4 text-sm text-slate-300"
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 + 0.35, duration: 0.4, ease: "easeOut" }}
-                >
-                  {item}
-                </motion.div>
-              ))}
-            </div>
-          </section>
+        
         </motion.div>
       </div>
-    </div>
+      </div>
+    
+    
   );
 };
 

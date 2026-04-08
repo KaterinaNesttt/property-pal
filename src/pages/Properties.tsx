@@ -8,6 +8,13 @@ import PropertyCard from "@/components/PropertyCard";
 import PropertyForm, { PropertyFormValues } from "@/components/PropertyForm";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { Property, PropertyStatus, Tenant } from "@/lib/types";
@@ -93,7 +100,7 @@ const Properties = () => {
               Новий об'єкт
             </button>
           }
-          description="CRUD для нерухомості, статусів та прив'язок до орендарів."
+          description=""
           title="Нерухомість"
         />
 
@@ -111,12 +118,17 @@ const Properties = () => {
                 value={search}
               />
             </label>
-            <select className="glass-input glass-select max-w-xs" onChange={(event) => setStatus(event.target.value as "all" | PropertyStatus)} value={status}>
-              <option value="all">Усі статуси</option>
-              <option value="free">Вільний</option>
-              <option value="rented">Зданий</option>
-              <option value="maintenance">Обслуговування</option>
-            </select>
+            <Select onValueChange={(value) => setStatus(value as "all" | PropertyStatus)} value={status}>
+              <SelectTrigger className="glass-input h-auto max-w-xs border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                <SelectValue placeholder="Усі статуси" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Усі статуси</SelectItem>
+                <SelectItem value="free">Вільний</SelectItem>
+                <SelectItem value="rented">Зданий</SelectItem>
+                <SelectItem value="maintenance">Обслуговування</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -128,13 +140,16 @@ const Properties = () => {
         </section>
 
         <Dialog onOpenChange={setOpen} open={open}>
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-[#050816] text-white">
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-black/90 p-0 text-white shadow-[0_30px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+            <div className="border-b border-white/10 bg-white/[0.03] px-6 py-5">
             <DialogHeader>
               <DialogTitle>{draft.id ? "Редагування об'єкта" : "Новий об'єкт"}</DialogTitle>
               <DialogDescription className="text-slate-400">
                 Заповніть основні дані по об'єкту нерухомості.
               </DialogDescription>
             </DialogHeader>
+            </div>
+            <div className="px-6 py-6">
             <PropertyForm
               activeTenantsCount={activeTenantsCount}
               draft={draft}
@@ -144,6 +159,7 @@ const Properties = () => {
               onSubmit={submit}
               roleLabel={roleLabel}
             />
+            </div>
           </DialogContent>
         </Dialog>
       </div>

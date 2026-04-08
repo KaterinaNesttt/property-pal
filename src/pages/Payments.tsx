@@ -9,6 +9,13 @@ import StatCard from "@/components/StatCard";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
 import IosDrumPicker from "@/components/ui/ios-date-picker";
 import IosMonthPicker from "@/components/ui/ios-month-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { money } from "@/lib/format";
@@ -26,6 +33,13 @@ const initialForm = {
   paid_at: "",
   note: "",
 };
+
+const paymentTypeOptions: Array<{ value: PaymentType; label: string }> = [
+  { value: "rent", label: "Оренда" },
+  { value: "utilities", label: "Комунальні" },
+  { value: "internet", label: "Інтернет" },
+  { value: "other", label: "Інше" },
+];
 
 const Payments = () => {
   const { token } = useAuth();
@@ -162,31 +176,46 @@ const Payments = () => {
           <section className="glass-card">
             <h2 className="text-xl font-semibold text-white">{draft.id ? "Редагування платежу" : "Новий платіж"}</h2>
             <form className="mt-5 grid gap-4" onSubmit={submit}>
-              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
-                <option value="">Оберіть об'єкт</option>
-                {(propertiesQuery.data ?? []).map((property) => (
-                  <option key={property.id} value={property.id}>
-                    {property.name}
-                  </option>
-                ))}
-              </select>
-              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, tenant_id: event.target.value }))} value={draft.tenant_id}>
-                <option value="">Без орендаря</option>
-                {(tenantsQuery.data ?? [])
-                  .filter((tenant) => !draft.property_id || tenant.property_id === draft.property_id)
-                  .map((tenant) => (
-                    <option key={tenant.id} value={tenant.id}>
-                      {tenant.full_name}
-                    </option>
+              <Select onValueChange={(value) => setDraft((current) => ({ ...current, property_id: value, tenant_id: "" }))} value={draft.property_id}>
+                <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                  <SelectValue placeholder="Оберіть об'єкт" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(propertiesQuery.data ?? []).map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.name}
+                    </SelectItem>
                   ))}
-              </select>
+                </SelectContent>
+              </Select>
+              <Select onValueChange={(value) => setDraft((current) => ({ ...current, tenant_id: value === "__none__" ? "" : value }))} value={draft.tenant_id || "__none__"}>
+                <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                  <SelectValue placeholder="Без орендаря" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Без орендаря</SelectItem>
+                  {(tenantsQuery.data ?? [])
+                    .filter((tenant) => !draft.property_id || tenant.property_id === draft.property_id)
+                    .map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.full_name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
               <div className="grid gap-4 md:grid-cols-2">
-                <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, payment_type: event.target.value as PaymentType }))} value={draft.payment_type}>
-                  <option value="rent">Оренда</option>
-                  <option value="utilities">Комунальні</option>
-                  <option value="internet">Інтернет</option>
-                  <option value="other">Інше</option>
-                </select>
+                <Select onValueChange={(value) => setDraft((current) => ({ ...current, payment_type: value as PaymentType }))} value={draft.payment_type}>
+                  <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                    <SelectValue placeholder="Тип платежу" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paymentTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <IosMonthPicker onChange={(value) => setDraft((current) => ({ ...current, period_month: value }))} value={draft.period_month} />
               </div>
               <div className="grid gap-4 md:grid-cols-2">

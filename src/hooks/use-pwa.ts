@@ -24,7 +24,7 @@ export function usePwa(): UsePwaReturn {
 
   /* Реєстрація Service Worker */
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
+    if (import.meta.env.DEV || !("serviceWorker" in navigator)) return;
 
     setSwState("registering");
 

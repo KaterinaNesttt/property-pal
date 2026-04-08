@@ -8,6 +8,13 @@ import StatusBadge from "@/components/StatusBadge";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
 import IosDrumPicker from "@/components/ui/ios-date-picker";
 import IosDateTimePicker from "@/components/ui/ios-date-time-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
@@ -24,6 +31,19 @@ const initialForm = {
   due_date: new Date().toISOString().slice(0, 10),
   reminder_at: "",
 };
+
+const priorityOptions: Array<{ value: TaskPriority; label: string }> = [
+  { value: "low", label: "Низький" },
+  { value: "medium", label: "Середній" },
+  { value: "high", label: "Високий" },
+];
+
+const statusOptions: Array<{ value: TaskStatus; label: string }> = [
+  { value: "open", label: "Відкрита" },
+  { value: "in_progress", label: "В роботі" },
+  { value: "done", label: "Завершена" },
+  { value: "overdue", label: "Прострочена" },
+];
 
 const Tasks = () => {
   const { token } = useAuth();
@@ -186,38 +206,60 @@ const Tasks = () => {
               </button>
             </div>
             <form className="mt-5 grid gap-4" onSubmit={submit}>
-              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
-                <option value="">Оберіть об'єкт</option>
-                {(propertiesQuery.data ?? []).map((property) => (
-                  <option key={property.id} value={property.id}>
-                    {property.name}
-                  </option>
-                ))}
-              </select>
-              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, tenant_id: event.target.value }))} value={draft.tenant_id}>
-                <option value="">Без орендаря</option>
-                {(tenantsQuery.data ?? [])
-                  .filter((tenant) => !draft.property_id || tenant.property_id === draft.property_id)
-                  .map((tenant) => (
-                    <option key={tenant.id} value={tenant.id}>
-                      {tenant.full_name}
-                    </option>
+              <Select onValueChange={(value) => setDraft((current) => ({ ...current, property_id: value, tenant_id: "" }))} value={draft.property_id}>
+                <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                  <SelectValue placeholder="Оберіть об'єкт" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(propertiesQuery.data ?? []).map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.name}
+                    </SelectItem>
                   ))}
-              </select>
+                </SelectContent>
+              </Select>
+              <Select onValueChange={(value) => setDraft((current) => ({ ...current, tenant_id: value === "__none__" ? "" : value }))} value={draft.tenant_id || "__none__"}>
+                <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                  <SelectValue placeholder="Без орендаря" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Без орендаря</SelectItem>
+                  {(tenantsQuery.data ?? [])
+                    .filter((tenant) => !draft.property_id || tenant.property_id === draft.property_id)
+                    .map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.full_name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
               <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="Назва" required value={draft.title} />
               <textarea className="glass-input min-h-[120px]" onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Опис" value={draft.description} />
               <div className="grid gap-4 md:grid-cols-2">
-                <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, priority: event.target.value as TaskPriority }))} value={draft.priority}>
-                  <option value="low">low</option>
-                  <option value="medium">medium</option>
-                  <option value="high">high</option>
-                </select>
-                <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value as TaskStatus }))} value={draft.status}>
-                  <option value="open">open</option>
-                  <option value="in_progress">in_progress</option>
-                  <option value="done">done</option>
-                  <option value="overdue">overdue</option>
-                </select>
+                <Select onValueChange={(value) => setDraft((current) => ({ ...current, priority: value as TaskPriority }))} value={draft.priority}>
+                  <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                    <SelectValue placeholder="Пріоритет" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priorityOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select onValueChange={(value) => setDraft((current) => ({ ...current, status: value as TaskStatus }))} value={draft.status}>
+                  <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                    <SelectValue placeholder="Статус" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <IosDrumPicker onChange={(value) => setDraft((current) => ({ ...current, due_date: value }))} placeholder="Оберіть дату" value={draft.due_date} />

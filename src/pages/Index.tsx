@@ -94,7 +94,7 @@ const Dashboard = () => {
           </div>
           <div className="min-w-0">
             <h1 className="text-3xl font-bold tracking-tight text-white">{`Вітаю, ${user?.full_name}`}</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-300">Огляд ключових показників вашого портфелю.</p>
+            <p className="mt-2 max-w-2xl text-sm text-slate-300"></p>
           </div>
         </div>
 
@@ -113,10 +113,11 @@ const Dashboard = () => {
             tone="danger"
             value={String(overduePayments.length)}
           />
-          <StatCard icon={Building2} label="Об'єкти" value={String(properties.length)} />
+          <StatCard icon={Building2} label="Об'єкти" tone="warning" value={String(properties.length)} />
           <StatCard
             icon={ListTodo}
             label="Відкриті задачі"
+            tone="success"
             value={String(tasks.filter((task) => task.status !== "done").length)}
           />
         </div>

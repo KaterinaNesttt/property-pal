@@ -74,7 +74,7 @@ const Analytics = () => {
           <h2 className="text-xl font-semibold text-white">Динаміка по місяцях</h2>
           <div className="mt-6 grid min-h-[280px] grid-cols-1 gap-6 md:grid-cols-2">
             {data.monthly.map((item) => (
-              <div key={item.month} className="rounded-3xl border border-white/10 bg-black/20 p-5">
+              <div key={item.month} className="rounded-3xl border border-black/10 bg-black/20 p-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-white">{item.month}</h3>
                   <span className="text-sm text-slate-400">Звітний місяць</span>

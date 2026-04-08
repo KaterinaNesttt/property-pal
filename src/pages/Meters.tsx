@@ -6,6 +6,13 @@ import AppLayout from "@/components/AppLayout";
 import PageHeader from "@/components/PageHeader";
 import { EmptyBlock, ErrorBlock, LoadingBlock } from "@/components/StateBlocks";
 import IosDrumPicker from "@/components/ui/ios-date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { formatDate, money } from "@/lib/format";
@@ -28,6 +35,12 @@ const icons = {
   gas: Flame,
   electricity: Zap,
 };
+
+const meterTypeOptions: Array<{ value: MeterType; label: string }> = [
+  { value: "water", label: "Вода" },
+  { value: "gas", label: "Газ" },
+  { value: "electricity", label: "Електрика" },
+];
 
 const Meters = () => {
   const { token } = useAuth();
@@ -160,20 +173,31 @@ const Meters = () => {
           <section className="glass-card">
             <h2 className="text-xl font-semibold text-white">{draft.id ? "Редагування лічильника" : "Новий показник"}</h2>
             <form className="mt-5 grid gap-4" onSubmit={submit}>
-              <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, property_id: event.target.value }))} required value={draft.property_id}>
-                <option value="">Оберіть об'єкт</option>
-                {(propertiesQuery.data ?? []).map((property) => (
-                  <option key={property.id} value={property.id}>
-                    {property.name}
-                  </option>
-                ))}
-              </select>
+              <Select onValueChange={(value) => setDraft((current) => ({ ...current, property_id: value }))} value={draft.property_id}>
+                <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                  <SelectValue placeholder="Оберіть об'єкт" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(propertiesQuery.data ?? []).map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <div className="grid gap-4 md:grid-cols-2">
-                <select className="glass-input glass-select" onChange={(event) => setDraft((current) => ({ ...current, meter_type: event.target.value as MeterType }))} value={draft.meter_type}>
-                  <option value="water">Вода</option>
-                  <option value="gas">Газ</option>
-                  <option value="electricity">Електрика</option>
-                </select>
+                <Select onValueChange={(value) => setDraft((current) => ({ ...current, meter_type: value as MeterType }))} value={draft.meter_type}>
+                  <SelectTrigger className="glass-input h-auto border-white/10 bg-black/20 px-4 py-3 text-left text-white backdrop-blur-xl">
+                    <SelectValue placeholder="Тип лічильника" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {meterTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <input className="glass-input" onChange={(event) => setDraft((current) => ({ ...current, unit: event.target.value }))} required value={draft.unit} />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
